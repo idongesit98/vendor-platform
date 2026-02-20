@@ -7,7 +7,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from '../../common/dto/create-user.dto';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { catchError, firstValueFrom, timeout } from 'rxjs';
 
