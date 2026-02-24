@@ -27,13 +27,25 @@ export class Vendor {
   role: Role;
 
   @Column({ default: false })
-  isVerified: boolean;
+  isEmailVerified: boolean;
 
   @Column({ nullable: true })
   phone: string;
 
   @Column({ nullable: true })
   address: string;
+
+  @Column()
+  description: string;
+
+  @Column({ default: false })
+  otpStatusSent: boolean;
+
+  @Column({ unique: true, nullable: true })
+  emailVerificationOtp: string;
+
+  @Column({ nullable: true })
+  otpExpiryTime: Date;
 
   @OneToMany(() => Review, (review) => review.vendor)
   reviews: Review[];
