@@ -15,7 +15,6 @@ import { firstValueFrom } from 'rxjs';
  */
 export interface RegistrationTokenPayload {
   sub: string;
-  deviceId: string;
   phoneNumber: string;
   step: string;
   type: 'registration';

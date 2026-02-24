@@ -1,30 +1,100 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto, LoginUserDto } from './dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Post,
+} from '@nestjs/common';
+import {
+  CreateUserDto,
+  CreateVendorDto,
+  LoginUserDto,
+  VerifyEmailDto,
+} from './dto';
 import { ApiTags } from '@nestjs/swagger';
+import { USER_SERVICE } from '../clients/client.module';
+import { ClientProxy } from '@nestjs/microservices';
+import { sendToService } from '@/common/utils';
 
-@ApiTags('User')
+@ApiTags('Auth')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  //constructor(private readonly userService: UserService) {}
+  constructor(@Inject(USER_SERVICE) private readonly client: ClientProxy) {}
 
-  @Post('create')
+  @Post('create-user')
+  @HttpCode(HttpStatus.CREATED)
   createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+    return sendToService(
+      this.client,
+      { cmd: 'auth.register-user' },
+      createUserDto,
+    );
+  }
+
+  @Post('create-vendor')
+  @HttpCode(HttpStatus.CREATED)
+  createVendor(@Body() createVendorDto: CreateVendorDto) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.register-vendor' },
+      createVendorDto,
+    );
+  }
+
+  @Post('verify/user')
+  @HttpCode(HttpStatus.OK)
+  verifyUsersEmail(@Body() verifyDto: VerifyEmailDto) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.verify-user-email' },
+      verifyDto,
+    );
+  }
+
+  @Post('verify/vendor')
+  @HttpCode(HttpStatus.OK)
+  verifyVendorsEmail(@Body() verifyDto: VerifyEmailDto) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.verify-vendor-email' },
+      verifyDto,
+    );
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   login(@Body() loginDto: LoginUserDto) {
-    return this.userService.login(loginDto);
+    return sendToService(this.client, { cmd: 'auth.login' }, loginDto);
   }
 
   @Get('all')
+  @HttpCode(HttpStatus.OK)
   findAll() {
-    return this.userService.findAll();
+    return sendToService(this.client, { cmd: 'auth.all-users' });
   }
 
-  @Get(':id')
-  findById(@Param('id') id: string) {
-    return this.userService.findById(id);
+  @Get('single/:id')
+  @HttpCode(HttpStatus.OK)
+  findById(@Param('id') userId: string) {
+    return sendToService(this.client, { cmd: 'auth.single-user' }, { userId });
+  }
+
+  @Delete('delete/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteUser(@Param('id') userId: string) {
+    return sendToService(this.client, { cmd: 'auth.delete-user' }, { userId });
+  }
+
+  tokenValidation(token: string) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.validate-token' },
+      { token },
+    );
   }
 }
