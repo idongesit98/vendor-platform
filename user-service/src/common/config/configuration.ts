@@ -5,6 +5,9 @@ export default () => ({
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN || '1h',
   },
+  url: {
+    front: process.env.FRONTEND_URL || 'http://localhost:3000/api/users',
+  },
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5434', 10),

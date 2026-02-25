@@ -14,7 +14,9 @@ import {
   hashPasswordAndOtp,
 } from '@/common/utils';
 import { handleErrors } from '@/common/utils/error-handler';
+import { MailService } from '@/service/mail/mail.service';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,13 +25,14 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name, { timestamp: true });
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async createUser(createUser: CreateUserDto) {
@@ -48,6 +51,7 @@ export class AuthService {
       const hashedPassword = await hashPasswordAndOtp(createUser.password);
       const otp = generateOtp();
       //const hashOtp = await hashPasswordAndOtp(otp);
+      const link = `${this.configService.get<string>('url')}/vendor?email=${createUser.email}&token=${otp}`;
 
       const user = this.userRepository.create({
         ...createUser,
@@ -62,6 +66,7 @@ export class AuthService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
+      await this.mailService.sendMail(result.email, link);
       return {
         message:
           'User created successfully, Please verify your email using the OTP sent',
@@ -87,6 +92,7 @@ export class AuthService {
 
       const hashedPassword = await hashPasswordAndOtp(createVendor.password);
       const otp = generateOtp();
+      const link = `${this.configService.get<string>('url')}/vendor?email=${createVendor.email}&token=${otp}`;
 
       const vendor = this.vendorRepository.create({
         ...createVendor,
@@ -102,6 +108,7 @@ export class AuthService {
       this.logger.log(`Vendor registered: ${saved.id}`);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
+      await this.mailService.sendMail(vendor.email, link);
       return {
         message: 'Vendor created successfully',
         Vendor: result,

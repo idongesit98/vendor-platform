@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './common/health/health.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { MailService } from './service/mail/mail.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuthModule } from './modules/auth/auth.module';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
+        url: configService.get<string>('url.front'),
         autoLoadEntities: true,
         synchronize: true,
         migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
@@ -35,5 +37,6 @@ import { AuthModule } from './modules/auth/auth.module';
     UserModule,
     AuthModule,
   ],
+  providers: [MailService],
 })
 export class AppModule {}
