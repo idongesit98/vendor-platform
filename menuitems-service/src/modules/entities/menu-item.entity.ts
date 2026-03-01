@@ -3,33 +3,51 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { UserOrder } from './user-order.entity';
+import { MenuCategory } from './menu-category.entity';
 
 @Entity('menu_items')
 export class MenuItem {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
-  category: string;
+  @Column({ nullable: true })
+  vendorId: string;
+
+  @ManyToOne(() => MenuCategory, (category) => category.menuItems)
+  @JoinColumn({ name: 'categoryId' })
+  category: MenuCategory;
+
+  @Column({ nullable: true })
+  categoryId: string;
 
   @Column({ default: true })
   isAvailable: boolean;
 
+  @Column({ nullable: true })
+  imageUrl: string;
+
+  @Column({ default: 0 })
+  prepTime: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToMany(() => UserOrder, (order) => order.menuItem)
-  orders: UserOrder[];
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  // @OneToMany(() => UserOrder, (order) => order.menuItem)
+  // orders: UserOrder[];
 }

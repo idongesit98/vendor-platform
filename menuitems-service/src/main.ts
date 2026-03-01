@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,6 +10,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: { host: '0.0.0.0', port: 4001 },
   });
+  app.useLogger(app.get(Logger));
 
   await app.startAllMicroservices();
   console.log('✅ TCP Microservice listening on port 4001');

@@ -34,6 +34,11 @@ export class AuthController {
     return this.authService.allUser();
   }
 
+  @MessagePattern({ cmd: 'auth.all-vendors' })
+  findAllVendors() {
+    return this.authService.allVendors();
+  }
+
   @MessagePattern({ cmd: 'auth.register-vendor' })
   registerVendor(@Payload() createVendor: CreateVendorDto) {
     return this.authService.createVendor(createVendor);

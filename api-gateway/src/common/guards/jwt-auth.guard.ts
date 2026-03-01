@@ -22,11 +22,14 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('No token provided');
     }
 
+    console.log('Sending token to auth service...');
+
     const user = await sendToService(
       this.client,
       { cmd: 'auth.validate-token' },
       { token },
     );
+    console.log('Token received from JWTAUTHGUARD', token);
 
     if (!user) {
       throw new UnauthorizedException('Invalid token');
@@ -38,7 +41,7 @@ export class JwtAuthGuard implements CanActivate {
 
   private extractToken(request: Request): string | null {
     const auth = request.headers.authorization;
-    if (!auth || !auth.startsWith('Bearer')) {
+    if (!auth || !auth.startsWith('Bearer ')) {
       return null;
     }
     return auth.split(' ')[1];

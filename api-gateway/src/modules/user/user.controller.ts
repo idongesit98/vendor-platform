@@ -8,6 +8,7 @@ import {
   Inject,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   CreateUserDto,
@@ -48,21 +49,27 @@ export class UserController {
 
   @Post('verify/user')
   @HttpCode(HttpStatus.OK)
-  verifyUsersEmail(@Body() verifyDto: VerifyEmailDto) {
+  verifyUsersEmail(
+    @Query() query: { email: string; emailVerificationOtp: string },
+    @Body() verifyDto: VerifyEmailDto,
+  ) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-user-email' },
-      verifyDto,
+      { ...verifyDto, ...query },
     );
   }
 
   @Post('verify/vendor')
   @HttpCode(HttpStatus.OK)
-  verifyVendorsEmail(@Body() verifyDto: VerifyEmailDto) {
+  verifyVendorsEmail(
+    @Query() query: { email: string; emailVerificationOtp: string },
+    @Body() verifyDto: VerifyEmailDto,
+  ) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-vendor-email' },
-      verifyDto,
+      { ...verifyDto, ...query },
     );
   }
 
@@ -76,6 +83,12 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   findAll() {
     return sendToService(this.client, { cmd: 'auth.all-users' });
+  }
+
+  @Get('vendors/all')
+  @HttpCode(HttpStatus.OK)
+  allVendors() {
+    return sendToService(this.client, { cmd: 'auth.all-vendors' });
   }
 
   @Get('single/:id')
