@@ -35,6 +35,7 @@ import { MailService } from './service/mail/mail.service';
     HealthModule,
     UserModule,
     AuthModule,
+    AuthModule,
   ],
   providers: [MailService],
 })

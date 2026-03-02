@@ -85,12 +85,6 @@ export class UserController {
     return sendToService(this.client, { cmd: 'auth.all-users' });
   }
 
-  @Get('vendors/all')
-  @HttpCode(HttpStatus.OK)
-  allVendors() {
-    return sendToService(this.client, { cmd: 'auth.all-vendors' });
-  }
-
   @Get('single/:id')
   @HttpCode(HttpStatus.OK)
   findById(@Param('id') userId: string) {

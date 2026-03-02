@@ -18,6 +18,7 @@ export class MenuItem {
   name: string;
 
   @Column('text', { nullable: true })
+  @Column('text', { nullable: true })
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
@@ -33,7 +34,7 @@ export class MenuItem {
   @Column({ nullable: true })
   categoryId: string;
 
-  @Column({ default: true })
+  @Column({ default: false })
   isAvailable: boolean;
 
   @Column({ nullable: true })
