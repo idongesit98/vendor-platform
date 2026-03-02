@@ -14,22 +14,26 @@ import {
   hashPasswordAndOtp,
 } from '@/common/utils';
 import { handleErrors } from '@/common/utils/error-handler';
+import { MailService } from '@/service/mail/mail.service';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Console } from 'console';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name, { timestamp: true });
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async createUser(createUser: CreateUserDto) {
@@ -48,6 +52,7 @@ export class AuthService {
       const hashedPassword = await hashPasswordAndOtp(createUser.password);
       const otp = generateOtp();
       //const hashOtp = await hashPasswordAndOtp(otp);
+      const link = `${this.configService.get<string>('url.front')}/vendor?email=${createUser.email}&token=${otp}`;
 
       const user = this.userRepository.create({
         ...createUser,
@@ -62,13 +67,14 @@ export class AuthService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
+      await this.mailService.sendMail(result.email, link);
       return {
         message:
           'User created successfully, Please verify your email using the OTP sent',
         User: result,
       };
     } catch (error) {
-      return handleErrors(error, this.logger, 'Failed to create user');
+      handleErrors(error, this.logger, 'Failed to create user');
     }
   }
 
@@ -87,6 +93,7 @@ export class AuthService {
 
       const hashedPassword = await hashPasswordAndOtp(createVendor.password);
       const otp = generateOtp();
+      const link = `${process.env.FRONTEND_URL}/vendor?email=${createVendor.email}&emailVerificationOtp=${otp}`;
 
       const vendor = this.vendorRepository.create({
         ...createVendor,
@@ -102,6 +109,7 @@ export class AuthService {
       this.logger.log(`Vendor registered: ${saved.id}`);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
+      await this.mailService.sendMail(vendor.email, link);
       return {
         message: 'Vendor created successfully',
         Vendor: result,
@@ -146,7 +154,7 @@ export class AuthService {
         Verified: account,
       };
     } catch (error) {
-      return handleErrors(error, this.logger, 'Failed to verify email');
+      handleErrors(error, this.logger, 'Failed to verify email');
     }
   }
 
@@ -179,13 +187,13 @@ export class AuthService {
 
       account.isEmailVerified = true;
 
-      await this.userRepository.save(account);
+      await this.vendorRepository.save(account);
       return {
         message: 'OTP verified successful for vendor',
         Verified: account,
       };
     } catch (error) {
-      return handleErrors(error, this.logger, 'Failed to verify email');
+      handleErrors(error, this.logger, 'Failed to verify email');
     }
   }
 
@@ -232,7 +240,7 @@ export class AuthService {
       const payload: JwtPayload = {
         sub: account.id,
         email: account.email,
-        roles: account.role,
+        role: account.role,
       };
 
       const token = await this.jwtService.signAsync(payload);
@@ -253,7 +261,7 @@ export class AuthService {
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
-      if (!payload?.sub || !payload.email || !payload.roles) {
+      if (!payload?.sub || !payload.email || !payload.role) {
         throw new RpcException({
           statusCode: HttpStatus.UNAUTHORIZED,
           message: 'Invalid token payload',
@@ -283,6 +291,26 @@ export class AuthService {
       return {
         message: 'Users retrieved successfully',
         AllUsers: allUsers,
+      };
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to get all users');
+    }
+  }
+
+  async allVendors() {
+    try {
+      const allVendors = await this.vendorRepository.find({});
+
+      if (!allVendors) {
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'No vendor exists',
+        });
+      }
+
+      return {
+        message: 'Vendors retrieved successfully',
+        AllVendors: allVendors,
       };
     } catch (error) {
       handleErrors(error, this.logger, 'Failed to get all users');
@@ -341,22 +369,35 @@ export class AuthService {
 
   async deleteUsers(userId: string) {
     try {
-      const user =
-        (await this.userRepository.findOne({ where: { id: userId } })) ??
-        (await this.vendorRepository.findOne({ where: { id: userId } }));
+      const user = await this.userRepository.findOne({ where: { id: userId } });
 
-      if (!user) {
-        throw new RpcException({
-          status: HttpStatus.NOT_FOUND,
-          message: 'User not found',
-        });
+      if (user) {
+        await this.userRepository.delete(userId);
+        return {
+          message: 'User deleted successfully',
+          Deleted: user,
+        };
       }
 
-      return {
-        statusCode: HttpStatus.NO_CONTENT,
-        Deleted: user,
-        message: 'User deleted successful',
-      };
+      const vendor = await this.vendorRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (vendor) {
+        await this.vendorRepository.delete(userId);
+
+        return {
+          message: 'User deleted successfully',
+          Deleted: vendor,
+        };
+      }
+
+      if (!user || !vendor) {
+        throw new RpcException({
+          status: HttpStatus.NOT_FOUND,
+          message: 'Users not found',
+        });
+      }
     } catch (error) {
       handleErrors(error, this.logger, 'Failed to delete user');
     }

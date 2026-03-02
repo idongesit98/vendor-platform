@@ -4,8 +4,6 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';

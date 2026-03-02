@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MenuItemModule } from './modules/menu-item/menu-item.module';
+import { MenuItemModule } from './modules/menu/menu-item.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './common/config/configuration';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validationSchema } from './common/config/validation.schema';
 import { HealthModule } from './common/health/health.module';
+import { CategoryModule } from './modules/category/category.module';
+import { LoggerModule } from './common/logger';
 
 @Module({
   imports: [
@@ -32,7 +34,9 @@ import { HealthModule } from './common/health/health.module';
       }),
       inject: [ConfigService],
     }),
+    LoggerModule,
     HealthModule,
+    CategoryModule,
     MenuItemModule,
   ],
   controllers: [AppController],

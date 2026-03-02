@@ -5,10 +5,9 @@ import {
   IsPositive,
   IsString,
   IsUUID,
-  Min,
 } from 'class-validator';
 
-export class CreateMenuDto {
+export class UpdateMenuItemDto {
   @IsString()
   name: string;
 
@@ -28,10 +27,10 @@ export class CreateMenuDto {
   imageUrl?: string;
 
   @IsNumber()
-  @Min(0)
   @IsOptional()
   prepTime?: number;
 
   @IsBoolean()
-  isAvailable: boolean;
+  @IsOptional()
+  isAvailable?: boolean;
 }

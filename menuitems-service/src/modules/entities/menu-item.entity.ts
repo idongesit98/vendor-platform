@@ -3,40 +3,41 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { MenuCategory } from './menu-categories.entity';
+import { MenuCategory } from './menu-category.entity';
 
 @Entity('menu_items')
 export class MenuItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
+  @Column('text', { nullable: true })
   @Column('text', { nullable: true })
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
+  @Column({ nullable: true })
   vendorId: string;
 
   @ManyToOne(() => MenuCategory, (category) => category.menuItems)
   @JoinColumn({ name: 'categoryId' })
   category: MenuCategory;
 
-  @Column()
+  @Column({ nullable: true })
   categoryId: string;
 
   @Column({ default: false })
   isAvailable: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   imageUrl: string;
 
   @Column({ default: 0 })
@@ -47,4 +48,7 @@ export class MenuItem {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // @OneToMany(() => UserOrder, (order) => order.menuItem)
+  // orders: UserOrder[];
 }
