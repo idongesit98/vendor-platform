@@ -25,13 +25,11 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     UserModule,
     MenuModule,
   ],
-  controllers: [AppController],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
-    AppService,
   ],
 })
 export class AppModule implements NestModule {
