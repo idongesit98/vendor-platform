@@ -1,0 +1,3 @@
+export const USER_SERVICE = 'USER_SERVICE';
+export const MENU_ITEM_SERVICE = 'MENU_ITEM_SERVICE';
+export const ORDER_SERVICE = 'ORDER_SERVICE';

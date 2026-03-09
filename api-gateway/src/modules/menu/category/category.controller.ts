@@ -1,4 +1,3 @@
-import { MENU_ITEM_SERVICE } from '@/modules/clients/client.module';
 import {
   Controller,
   HttpCode,
@@ -12,7 +11,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateCategoryDto } from '../dto';
-import { sendToService } from '@/common/utils';
+import { MENU_ITEM_SERVICE, sendToService } from '@/common/utils';
 
 @ApiTags('Category')
 @Controller('category')

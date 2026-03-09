@@ -2,11 +2,8 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { TcpHealthIndicator } from './tcp-health-indicator';
-import {
-  MENU_ITEM_SERVICE,
-  USER_SERVICE,
-} from '@/modules/clients/client.module';
 import { ClientProxy } from '@nestjs/microservices';
+import { MENU_ITEM_SERVICE, USER_SERVICE } from '@/common/utils';
 
 @ApiTags('Health')
 @Controller('health')

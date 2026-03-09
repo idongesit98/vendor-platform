@@ -6,7 +6,7 @@ export default () => ({
     expiresIn: process.env.JWT_EXPIRES_IN || '1d',
   },
   url: {
-    front: process.env.FRONTEND_URL || 'http://localhost:3000/api/users',
+    front: process.env.FRONTEND_URL || 'http://localhost:3000/api/users/verify',
   },
   database: {
     host: process.env.DB_HOST || 'localhost',
