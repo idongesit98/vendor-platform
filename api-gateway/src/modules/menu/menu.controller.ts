@@ -13,9 +13,8 @@ import {
 } from '@nestjs/common';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { MENU_ITEM_SERVICE } from '../clients/client.module';
 import { ClientProxy } from '@nestjs/microservices';
-import { sendToService } from '@/common/utils';
+import { MENU_ITEM_SERVICE, sendToService } from '@/common/utils';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { CurrentUser, Roles } from '@/common/decorators';

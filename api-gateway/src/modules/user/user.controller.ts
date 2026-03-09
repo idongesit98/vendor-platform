@@ -17,9 +17,8 @@ import {
   VerifyEmailDto,
 } from './dto';
 import { ApiTags } from '@nestjs/swagger';
-import { USER_SERVICE } from '../clients/client.module';
 import { ClientProxy } from '@nestjs/microservices';
-import { sendToService } from '@/common/utils';
+import { sendToService, USER_SERVICE } from '@/common/utils';
 
 @ApiTags('Auth')
 @Controller('users')

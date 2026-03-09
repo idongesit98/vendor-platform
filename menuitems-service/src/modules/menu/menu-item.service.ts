@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MenuItem } from '../entities';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { CreateMenuDto, UpdateMenuItemDto } from '@/common/dto';
 import { handleErrors } from '@/common/utils';
@@ -86,7 +86,30 @@ export class MenuItemService {
         SingleItem: item,
       };
     } catch (error) {
-      return handleErrors(error, this.logger, 'Single item found');
+      handleErrors(error, this.logger, 'Single item found');
+    }
+  }
+
+  async getMenuItemsByIds(menuIds: string[]) {
+    try {
+      if (!menuIds?.length) {
+        throw new RpcException('No menu item ids provided');
+      }
+
+      const items = await this.menuItemRepo.find({
+        where: { id: In(menuIds) },
+        relations: ['category'],
+      });
+      console.log('Found items', items);
+
+      if (!items.length) {
+        throw new RpcException('Menu items not found');
+      }
+
+      return items;
+      console.log('Menu By Ids', items);
+    } catch (error) {
+      handleErrors(error, this.logger, 'Menu items fetching failed');
     }
   }
 

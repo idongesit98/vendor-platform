@@ -13,6 +13,7 @@ import { UserModule } from './modules/user/user.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     HealthModule,
     UserModule,
     MenuModule,
+    OrderModule,
   ],
   providers: [
     {

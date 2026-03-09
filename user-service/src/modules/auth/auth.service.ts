@@ -93,7 +93,7 @@ export class AuthService {
 
       const hashedPassword = await hashPasswordAndOtp(createVendor.password);
       const otp = generateOtp();
-      const link = `${process.env.FRONTEND_URL}/vendor?email=${createVendor.email}&emailVerificationOtp=${otp}`;
+      const link = `${this.configService.get<string>('url.front')}/vendor?email=${createVendor.email}&emailVerificationOtp=${otp}`;
 
       const vendor = this.vendorRepository.create({
         ...createVendor,

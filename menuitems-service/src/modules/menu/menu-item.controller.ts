@@ -21,8 +21,14 @@ export class MenuItemController {
   }
 
   @MessagePattern({ cmd: 'menu.single-menu' })
-  getMenuItemById(@Payload() payload: { menuId: string }) {
-    return this.menuItemService.getMenuItemById(payload.menuId);
+  getMenuItemById(@Payload() payload: { menuIds: string }) {
+    return this.menuItemService.getMenuItemById(payload.menuIds);
+  }
+
+  @MessagePattern({ cmd: 'menu.findManyIds' })
+  getManyMenusById(@Payload('ids') menuIds: string[]) {
+    console.log('MENU PAYLOAD:', menuIds);
+    return this.menuItemService.getMenuItemsByIds(menuIds);
   }
 
   @MessagePattern({ cmd: 'menu.vendor' })
