@@ -7,6 +7,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '@/service/mail/mail.module';
 import { StringValue } from 'ms';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { NOTIFICATION_SERVICE } from '@/common/utils';
 
 @Module({
   imports: [
@@ -21,6 +23,24 @@ import { StringValue } from 'ms';
       }),
       inject: [ConfigService],
     }),
+    ClientsModule.registerAsync([
+      {
+        name: NOTIFICATION_SERVICE,
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [
+              configService.get<string>('rabbitmq.url') ||
+                'amqp://admin:admin@localhost:5672',
+            ],
+            queue: 'notification_queue',
+            queueOptions: { durable: true },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
     MailModule,
   ],
   controllers: [AuthController],

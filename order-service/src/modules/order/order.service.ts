@@ -5,7 +5,7 @@ import { DataSource, Repository } from 'typeorm';
 import { MENU_SERVICE, NOTIFICATION_SERVICE } from '@/common/utils/const';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { CreateOrderDto, UpdateOrderStatusDto } from '../dto';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { MenuItemResponse } from '@/common/utils/interface';
 import { OrderStatus } from '@/common/utils/enum/order-status';
 import { handleErrors } from '@/common/utils';
@@ -29,6 +29,18 @@ export class OrderService {
     @Inject(NOTIFICATION_SERVICE)
     private readonly notificationClient: ClientProxy,
   ) {}
+
+  async onModuleInit() {
+    try {
+      await this.notificationClient.connect();
+      this.logger.log('Connected to RabbitMQ');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `RabbitMQ connection failed: ${JSON.stringify(errorMessage)}`,
+      );
+    }
+  }
 
   async createOrder(userId: string, createDto: CreateOrderDto) {
     if (!createDto.items?.length) {
@@ -116,17 +128,28 @@ export class OrderService {
 
     this.logger.log(`Order created: ${savedOrder.id} by user: ${userId}`);
 
-    this.notificationClient.emit('order.create', {
-      orderId: savedOrder.id,
-      userId,
-      vendorId,
-      totalAmount,
-      items: orderItems.map((i) => ({
-        name: i.menuItemId,
-        quantiy: i.quantity,
-        price: i.price,
-      })),
-    });
+    this.notificationClient
+      .emit('order.created', {
+        orderId: savedOrder.id,
+        userId,
+        vendorId,
+        totalAmount,
+        items: orderItems.map((i) => ({
+          name: i.menuItemId,
+          quantiy: i.quantity,
+          price: i.price,
+        })),
+      })
+      .pipe(
+        catchError((err: Error) => {
+          this.logger.error(`Failed to emit order.created: ${err.message}`);
+          return of(null);
+        }),
+      )
+      .subscribe({
+        next: () => this.logger.log('Order created Event emitted successfully'),
+        error: (err: Error) => this.logger.error(`Emit error: ${err.message}`),
+      });
 
     return {
       message: 'Order created successfully',
@@ -228,12 +251,27 @@ export class OrderService {
         where: { id: orderId },
       });
 
-      this.notificationClient.emit('order.status_updated', {
-        id: orderId,
-        userId: orderItem.userId,
-        vendorId,
-        status: updateDto.status,
-      });
+      this.notificationClient
+        .emit('order.status-updated', {
+          orderId: orderId,
+          userId: orderItem.userId,
+          vendorId,
+          status: updateDto.status,
+        })
+        .pipe(
+          catchError((err: Error) => {
+            this.logger.error(
+              `Failed to emit order.status-updated: ${err.message}`,
+            );
+            return of(null);
+          }),
+        )
+        .subscribe({
+          next: () =>
+            this.logger.log('Order status Event emitted successfully'),
+          error: (err: Error) =>
+            this.logger.error(`Emit order status error: ${err.message}`),
+        });
 
       return {
         message: 'Order status updated successfully',

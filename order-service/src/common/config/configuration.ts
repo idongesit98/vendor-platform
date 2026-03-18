@@ -15,6 +15,6 @@ export default () => ({
     },
   },
   rabbitmq: {
-    url: process.env.RABBIT_URL || '',
+    url: process.env.RABBITMQ_URL || 'amqp://admin:admin@localhost:5672',
   },
 });

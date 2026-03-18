@@ -1,4 +1,9 @@
-import { MENU_ITEM_SERVICE, ORDER_SERVICE, USER_SERVICE } from '@/common/utils';
+import {
+  MENU_ITEM_SERVICE,
+  NOTIFICATION_SERVICE,
+  ORDER_SERVICE,
+  USER_SERVICE,
+} from '@/common/utils';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
@@ -41,6 +46,20 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           const host = configService.get<string>('services.order.host');
           const port = configService.get<number>('services.order.port');
           console.log('ORDER_SERVICE connecting to:', { host, port });
+          return {
+            transport: Transport.TCP,
+            options: { host, port },
+          };
+        },
+        inject: [ConfigService],
+      },
+      {
+        name: NOTIFICATION_SERVICE,
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const host = configService.get<string>('services.order.host');
+          const port = configService.get<number>('services.notification.port');
+          console.log('NOTIFICATION_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
             options: { host, port },

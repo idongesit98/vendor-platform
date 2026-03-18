@@ -7,7 +7,7 @@ import { CreateOrderDto, UpdateOrderStatusDto } from '../dto';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @MessagePattern({ cmd: 'order.create' })
+  @MessagePattern({ cmd: 'order.created' })
   createOrder(
     @Payload() payload: { userId: string; createDto: CreateOrderDto },
   ) {
@@ -30,7 +30,7 @@ export class OrderController {
     return this.orderService.findOrderById(payload.orderId);
   }
 
-  @MessagePattern({ cmd: 'order.update-status' })
+  @MessagePattern({ cmd: 'order.status-updated' })
   updateOrderStatus(
     @Payload()
     payload: {

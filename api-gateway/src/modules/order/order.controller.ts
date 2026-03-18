@@ -31,7 +31,7 @@ export class OrderController {
   ) {
     return sendToService(
       this.client,
-      { cmd: 'order.create' },
+      { cmd: 'order.created' },
       { userId, createDto },
     );
   }
@@ -66,8 +66,8 @@ export class OrderController {
   ) {
     return sendToService(
       this.client,
-      { cmd: 'order.update-status' },
-      { orderId, updateDto, vendorId },
+      { cmd: 'order.status-updated' },
+      { orderId, vendorId, updateDto },
     );
   }
 }
