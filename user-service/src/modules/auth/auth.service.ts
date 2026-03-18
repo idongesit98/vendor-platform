@@ -12,21 +12,23 @@ import {
   comparePassword,
   generateOtp,
   hashPasswordAndOtp,
+  NOTIFICATION_SERVICE,
 } from '@/common/utils';
 import { handleErrors } from '@/common/utils/error-handler';
 import { MailService } from '@/service/mail/mail.service';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Console } from 'console';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name, { timestamp: true });
   constructor(
+    @Inject(NOTIFICATION_SERVICE)
+    private readonly notificationClient: ClientProxy,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Vendor)
@@ -35,6 +37,18 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      await this.notificationClient.connect();
+      this.logger.log('Connected to RabbitMQ');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `RabbitMQ connection failed: ${JSON.stringify(errorMessage)}`,
+      );
+    }
+  }
 
   async createUser(createUser: CreateUserDto) {
     try {
@@ -67,7 +81,14 @@ export class AuthService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
-      await this.mailService.sendMail(result.email, link);
+      //await this.mailService.sendMail(result.email, link);
+      this.notificationClient.emit('user.created', {
+        email: createUser.email,
+        firstName: createUser.firstName,
+        lastName: createUser.lastName,
+        otp,
+        verificationLink: link,
+      });
       return {
         message:
           'User created successfully, Please verify your email using the OTP sent',

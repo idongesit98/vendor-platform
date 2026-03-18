@@ -1,8 +1,37 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [
+        process.env.RABBITMQ_URL ?? 'amqp://admin:admin@notify-rabbitmq:5672',
+      ],
+      queue: 'notification_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.TCP,
+    options: {
+      host: '0.0.0.0',
+      port: 4003,
+    },
+  });
+
+  app.useLogger(app.get(Logger));
+
+  await app.startAllMicroservices();
+  await app.listen(process.env.PORT ?? 3004);
+  console.log(
+    'Notification service is listening on TCP port 4003 while RabbitMQ is emitting on notification_queue',
+  );
 }
-bootstrap();
+void bootstrap();

@@ -14,6 +14,7 @@ import { MenuModule } from './modules/menu/menu.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { OrderModule } from './modules/order/order.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { OrderModule } from './modules/order/order.module';
     UserModule,
     MenuModule,
     OrderModule,
+    NotificationModule,
   ],
   providers: [
     {
