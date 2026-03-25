@@ -11,11 +11,21 @@ interface ApiSuccessResponseOptions {
   type?: Type<any> | string;
   status?: number;
   description?: string;
+  isArray?: boolean;
 }
 
 export const ApiSuccessResponse = (options: ApiSuccessResponseOptions) => {
   const dataIsType = options.type && typeof options.type !== 'string';
   const status = options.status || 200;
+
+  const dataSchema = dataIsType
+    ? options.isArray
+      ? {
+          type: 'array' as const,
+          items: { $ref: getSchemaPath(options.type as Type<any>) },
+        }
+      : { $ref: getSchemaPath(options.type as Type<any>) }
+    : { type: 'object' as const };
 
   return applyDecorators(
     ApiExtraModels(
@@ -29,11 +39,7 @@ export const ApiSuccessResponse = (options: ApiSuccessResponseOptions) => {
             allOf: [
               { $ref: getSchemaPath(BaseApiResponseDto) },
               {
-                properties: {
-                  data: dataIsType
-                    ? { $ref: getSchemaPath(options.type as Type<any>) }
-                    : { type: 'object' },
-                },
+                properties: { data: dataSchema },
               },
             ],
           },
@@ -44,11 +50,7 @@ export const ApiSuccessResponse = (options: ApiSuccessResponseOptions) => {
             allOf: [
               { $ref: getSchemaPath(BaseApiResponseDto) },
               {
-                properties: {
-                  data: dataIsType
-                    ? { $ref: getSchemaPath(options.type as Type<any>) }
-                    : { type: 'object' },
-                },
+                properties: { data: dataSchema },
               },
             ],
           },

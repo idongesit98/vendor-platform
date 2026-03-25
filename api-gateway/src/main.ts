@@ -48,8 +48,14 @@ async function bootstrap() {
     .addBearerAuth()
     .addTag('Health', 'Health check endpoints')
     .addTag('Auth', 'Authentication and Users Creation')
-    .addTag('Menu Item', 'Menu Item showing available menus and food')
     .addTag('Order', 'Showing all order and order status')
+    .addTag(
+      'Menu',
+      'Showing all menu available created by vendor and ordered by user',
+    )
+    .addTag('Category', 'Shows all category')
+    .addTag('Notifications', 'All notifications emit from other services')
+    .addTag('Payment', 'Payment received from users')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
