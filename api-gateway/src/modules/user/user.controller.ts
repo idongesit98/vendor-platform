@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -14,11 +15,16 @@ import {
   CreateUserDto,
   CreateVendorDto,
   LoginUserDto,
+  ResendOtp,
+  UpdateUserDto,
+  UpdateVendorDto,
   VerifyEmailDto,
 } from './dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendToService, USER_SERVICE } from '@/common/utils';
+import { ApiSuccessResponse } from '@/common/decorators/swagger/success-response.decorator';
+import { SwaggerResponses } from '@/common/decorators/swagger';
 
 @ApiTags('Auth')
 @Controller('users')
@@ -28,6 +34,15 @@ export class UserController {
 
   @Post('create-user')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'User created successfully',
+    type: CreateUserDto,
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   createUser(@Body() createUserDto: CreateUserDto) {
     return sendToService(
       this.client,
@@ -38,6 +53,15 @@ export class UserController {
 
   @Post('create-vendor')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create an account for a vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Vendor account created successfully',
+    type: CreateVendorDto,
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   createVendor(@Body() createVendorDto: CreateVendorDto) {
     return sendToService(
       this.client,
@@ -48,50 +72,170 @@ export class UserController {
 
   @Post('verify/user')
   @HttpCode(HttpStatus.OK)
-  verifyUsersEmail(
-    @Query() query: { email: string; emailVerificationOtp: string },
-    @Body() verifyDto: VerifyEmailDto,
-  ) {
+  @ApiOperation({ summary: 'Verify an email for a user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Verify email created',
+    type: VerifyEmailDto,
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  verifyUsersEmail(@Query() query: VerifyEmailDto) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-user-email' },
-      { ...verifyDto, ...query },
+      { ...query },
     );
   }
 
   @Post('verify/vendor')
   @HttpCode(HttpStatus.OK)
-  verifyVendorsEmail(
-    @Query() query: { email: string; emailVerificationOtp: string },
-    @Body() verifyDto: VerifyEmailDto,
-  ) {
+  @ApiOperation({ summary: 'Verify an email for a vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Verify email created',
+    type: VerifyEmailDto,
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  verifyVendorsEmail(@Query() query: VerifyEmailDto) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-vendor-email' },
-      { ...verifyDto, ...query },
+      { ...query },
     );
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Login user',
+    type: LoginUserDto,
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   login(@Body() loginDto: LoginUserDto) {
     return sendToService(this.client, { cmd: 'auth.login' }, loginDto);
   }
 
+  @Post('resend-otp/user')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend OTP to user email' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'OTP resent successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  resendUserOtp(@Body() emailDto: ResendOtp) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.resend-user-otp' },
+      emailDto,
+    );
+  }
+
+  @Post('resend-otp/vendor')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend OTP to vendor email' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'OTP resent successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  resendvendorOtp(@Body() emailDto: ResendOtp) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.resend-vendor-otp' },
+      emailDto,
+    );
+  }
+
   @Get('all')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Get all users created',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   findAll() {
     return sendToService(this.client, { cmd: 'auth.all-users' });
   }
 
   @Get('single/:id')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get a single user by ID' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Find a single user',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   findById(@Param('id') userId: string) {
     return sendToService(this.client, { cmd: 'auth.single-user' }, { userId });
   }
 
+  @Patch('update-user/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Update a user using the userId',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  updateUser(@Param('id') userId: string, @Body() updateUser: UpdateUserDto) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.update-user' },
+      { userId, updateUser },
+    );
+  }
+
+  @Patch('update-vendor/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Update a vendor using the vendorId',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  updateVendor(
+    @Param('id') vendorId: string,
+    @Body() updateVendor: UpdateVendorDto,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.update-vendor' },
+      { vendorId, updateVendor },
+    );
+  }
+
   @Delete('delete/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Delete a user',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   deleteUser(@Param('id') userId: string) {
     return sendToService(this.client, { cmd: 'auth.delete-user' }, { userId });
   }

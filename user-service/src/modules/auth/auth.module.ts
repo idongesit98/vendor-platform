@@ -35,7 +35,13 @@ import { NOTIFICATION_SERVICE } from '@/common/utils';
                 'amqp://admin:admin@localhost:5672',
             ],
             queue: 'notification_queue',
-            queueOptions: { durable: true },
+            queueOptions: {
+              durable: true,
+              arguments: {
+                'x-dead-letter-exchange': 'notification.dlx',
+                'x-dead-letter-routing-key': 'notification.dlx',
+              },
+            },
           },
         }),
         inject: [ConfigService],

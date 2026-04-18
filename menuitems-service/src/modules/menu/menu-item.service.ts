@@ -105,9 +105,8 @@ export class MenuItemService {
       if (!items.length) {
         throw new RpcException('Menu items not found');
       }
-
-      return items;
       console.log('Menu By Ids', items);
+      return items;
     } catch (error) {
       handleErrors(error, this.logger, 'Menu items fetching failed');
     }
@@ -190,53 +189,4 @@ export class MenuItemService {
       throw error;
     }
   }
-
-  // async validateUser(userId: string): Promise<any> {
-  //   try {
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  //     const user = await firstValueFrom(
-  //       this.userClient.send({ cmd: 'user.findById' }, { userId }).pipe(
-  //         timeout(5000),
-  //         catchError(() => {
-  //           throw new BadRequestException('User service unavailable');
-  //         }),
-  //       ),
-  //     );
-  //     return user;
-  //   } catch (error) {
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  //     throw new BadRequestException(error.message || 'Failed to validate user');
-  //   }
-  // }
-  // async placeOrder(dto: CreateOrderDto): Promise<UserOrder> {
-  //   // 1. Validate user exists via TCP
-  //   await this.validateUser(dto.userId);
-
-  //   // 2. Validate menu item
-  //   const menuItem = await this.getMenuItemById(dto.menuItemId);
-  //   if (!menuItem.isAvailable) {
-  //     throw new BadRequestException('Menu item is not available');
-  //   }
-
-  //   // 3. Create order
-  //   const order = this.userOrderRepo.create({
-  //     userId: dto.userId,
-  //     menuItemId: dto.menuItemId,
-  //     quantity: dto.quantity,
-  //     status: 'pending',
-  //   });
-
-  //   return this.userOrderRepo.save(order);
-  // }
-
-  // async getUserOrders(userId: string): Promise<UserOrder[]> {
-  //   // Validate user via TCP first
-  //   await this.validateUser(userId);
-
-  //   return this.userOrderRepo.find({
-  //     where: { userId },
-  //     relations: ['menuItem'],
-  //     order: { orderedAt: 'DESC' },
-  //   });
-  // }
 }

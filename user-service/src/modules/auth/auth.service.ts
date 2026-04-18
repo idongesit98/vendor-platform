@@ -2,6 +2,7 @@ import {
   CreateUserDto,
   CreateVendorDto,
   UpdateUserDto,
+  UpdateVendor,
   VerifyEmailDto,
 } from '@/common/dto';
 import { LoginDto } from '@/common/dto/login-dto';
@@ -65,14 +66,15 @@ export class AuthService {
 
       const hashedPassword = await hashPasswordAndOtp(createUser.password);
       const otp = generateOtp();
-      //const hashOtp = await hashPasswordAndOtp(otp);
-      const link = `${this.configService.get<string>('url.front')}/vendor?email=${createUser.email}&token=${otp}`;
+
+      const link = `${this.configService.get<string>('url.front')}/user?email=${createUser.email}&emailVerificationOtp=${otp}`;
+      const hashOtp = await hashPasswordAndOtp(otp);
 
       const user = this.userRepository.create({
         ...createUser,
         password: hashedPassword,
         role: Role.CUSTOMER,
-        emailVerificationOtp: otp,
+        emailVerificationOtp: hashOtp,
         otpExpiryTime: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       });
 
@@ -81,7 +83,7 @@ export class AuthService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
-      //await this.mailService.sendMail(result.email, link);
+
       this.notificationClient.emit('user.created', {
         email: createUser.email,
         firstName: createUser.firstName,
@@ -116,23 +118,33 @@ export class AuthService {
       const otp = generateOtp();
       const link = `${this.configService.get<string>('url.front')}/vendor?email=${createVendor.email}&emailVerificationOtp=${otp}`;
 
+      const hashOtp = await hashPasswordAndOtp(otp);
+
       const vendor = this.vendorRepository.create({
         ...createVendor,
         password: hashedPassword,
         role: Role.VENDOR,
-        emailVerificationOtp: otp,
+        emailVerificationOtp: hashOtp,
         otpExpiryTime: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       });
 
       const saved = await this.vendorRepository.save(vendor);
-      //Next step is to send the otp via notification service
 
       this.logger.log(`Vendor registered: ${saved.id}`);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = saved;
-      await this.mailService.sendMail(vendor.email, link);
+
+      //Send notifications to new vendor created
+      this.notificationClient.emit('vendor.created', {
+        businessName: createVendor.businessName,
+        email: createVendor.email,
+        address: createVendor.address,
+        otp,
+        verificationLink: link,
+      });
       return {
-        message: 'Vendor created successfully',
+        message:
+          'Vendor created successfully, Please verify your email using the OTP sent',
         Vendor: result,
       };
     } catch (error) {
@@ -157,10 +169,19 @@ export class AuthService {
         return { message: 'Email already verified' };
       }
 
-      if (
-        account.emailVerificationOtp !== emailVerificationOtp ||
-        account.otpExpiryTime < new Date()
-      ) {
+      if (account.otpExpiryTime < new Date()) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid or expired OTP',
+        });
+      }
+
+      const isOtpValid = await comparePassword(
+        emailVerificationOtp,
+        account.emailVerificationOtp,
+      );
+
+      if (!isOtpValid) {
         throw new RpcException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Invalid or expired OTP',
@@ -168,6 +189,9 @@ export class AuthService {
       }
 
       account.isEmailVerified = true;
+      account.otpStatusSent = true;
+      account.emailVerificationOtp = '';
+      account.otpExpiryTime = new Date(0);
 
       await this.userRepository.save(account);
       return {
@@ -196,10 +220,19 @@ export class AuthService {
         return { message: 'Vendor email already verified' };
       }
 
-      if (
-        account.emailVerificationOtp !== emailVerificationOtp ||
-        account.otpExpiryTime < new Date()
-      ) {
+      if (account.otpExpiryTime < new Date()) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid or expired OTP',
+        });
+      }
+
+      const isOtpValid = await comparePassword(
+        emailVerificationOtp,
+        account.emailVerificationOtp,
+      );
+
+      if (!isOtpValid) {
         throw new RpcException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Invalid or expired OTP',
@@ -207,6 +240,9 @@ export class AuthService {
       }
 
       account.isEmailVerified = true;
+      account.otpStatusSent = true;
+      account.emailVerificationOtp = '';
+      account.otpExpiryTime = new Date(0);
 
       await this.vendorRepository.save(account);
       return {
@@ -298,6 +334,127 @@ export class AuthService {
     }
   }
 
+  async resendUserOtp(email: string) {
+    try {
+      const user = await this.userRepository.findOne({ where: { email } });
+      this.logger.log(`Resend OTP requested for ${email}`);
+
+      if (!user) {
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User account not found',
+        });
+      }
+
+      if (user.isEmailVerified) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Email is already verified',
+        });
+      }
+
+      const now = new Date();
+      const otpIsExpired = !user.otpExpiryTime || user.otpExpiryTime < now;
+
+      if (!otpIsExpired) {
+        const otpGeneratedAt =
+          new Date(user.otpExpiryTime).getTime() - 10 * 60 * 1000;
+        const secondsSinceOtpSent = (now.getTime() - otpGeneratedAt) / 1000;
+
+        if (secondsSinceOtpSent < 60) {
+          throw new RpcException({
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            message:
+              'OTP was recently sent. Please wait before requesting a new one. ',
+          });
+        }
+      }
+
+      const otp = generateOtp();
+      this.logger.log(`Generated OTP for ${email}: ${otp}`);
+      const link = `${this.configService.get<string>('url.front')}/user?email=${email}&emailVerificationOtp=${otp}`;
+      const hashOtp = await hashPasswordAndOtp(otp);
+
+      user.emailVerificationOtp = hashOtp;
+      user.otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.userRepository.save(user);
+
+      this.notificationClient.emit('otp.resend', {
+        role: 'user',
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        otp,
+        verificationLink: link,
+      });
+
+      return {
+        message:
+          'OTP resent successfully, please check your email for the new OTP',
+      };
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to resend OTP');
+    }
+  }
+
+  async resendVendorOtp(email: string) {
+    try {
+      const vendor = await this.vendorRepository.findOne({ where: { email } });
+
+      if (!vendor) {
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Vendor account not found',
+        });
+      }
+
+      if (vendor.isEmailVerified) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Email is already verified',
+        });
+      }
+
+      if (
+        vendor.otpExpiryTime &&
+        new Date(vendor.otpExpiryTime).getTime() > Date.now() - 60 * 1000
+      ) {
+        throw new RpcException({
+          statusCode: HttpStatus.TOO_MANY_REQUESTS,
+          message:
+            'OTP was recently sent. Please wait before requesting a new one.',
+        });
+      }
+
+      const otp = generateOtp();
+      const link = `${this.configService.get<string>('url.front')}/vendor?email=${email}&emailVerificationOtp=${otp}`;
+      const hashOtp = await hashPasswordAndOtp(otp);
+
+      vendor.emailVerificationOtp = hashOtp;
+      vendor.otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.vendorRepository.save(vendor);
+
+      this.notificationClient.emit('otp.resend', {
+        role: 'vendor',
+        businessName: vendor.businessName,
+        address: vendor.address,
+        phone: vendor.phone,
+        email: vendor.email,
+        otp,
+        verificationLink: link,
+      });
+
+      return {
+        message:
+          'OTP resent successfully, please check your email for the new OTP',
+      };
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to resend OTP');
+    }
+  }
+
   async allUser() {
     try {
       const allUsers = await this.userRepository.find({});
@@ -362,6 +519,33 @@ export class AuthService {
       };
     } catch (error) {
       return handleErrors(error, this.logger, 'Failed to update user');
+    }
+  }
+
+  async updateVendor(vendorId: string, updateVendorDto: UpdateVendor) {
+    try {
+      const existingVendor = await this.vendorRepository.findOne({
+        where: { id: vendorId },
+      });
+
+      if (!existingVendor) {
+        throw new RpcException({
+          status: HttpStatus.NOT_FOUND,
+          message: 'Vendor not found',
+        });
+      }
+
+      const updateVendor = await this.vendorRepository.update(
+        { id: vendorId },
+        updateVendorDto,
+      );
+
+      return {
+        message: 'Vendor updated successfully',
+        Updated: updateVendor,
+      };
+    } catch (error) {
+      return handleErrors(error, this.logger, 'Failed to update vendor');
     }
   }
 

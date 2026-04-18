@@ -30,44 +30,62 @@ export class NotificationService {
   ) {}
 
   async createAndSend(payload: CreateNotificationPayload) {
-    const existing = await this.notifRepo.findOne({
-      where: {
-        recipientId: payload.recipientId,
-        type: payload.type,
-        channel: payload.channel,
-        correlationId: payload.correlationId,
-        status: NotificationStatus.SENT,
-      },
-    });
-
-    if (existing) {
-      this.logger.warn(
-        `Duplicate notification skipped: ${payload.type} for ${payload.recipientId}`,
-      );
-      return;
-    }
     const { title, message } = getNotificationTemplate(
       payload.type,
       payload.recipientType,
       payload.metadata,
     );
+
     this.logger.log(`METADATA IN: ${JSON.stringify(payload.metadata)}`);
 
-    const notification = this.notifRepo.create({
-      recipientId: payload.recipientId,
-      recipientType: payload.recipientType,
-      type: payload.type,
-      channel: payload.channel,
-      correlationId: payload.correlationId,
-      title,
-      message,
-      metadata: payload.metadata,
-      status: NotificationStatus.PENDING,
-    });
+    const correlationId =
+      payload.correlationId ||
+      `${payload.recipientId}:${payload.type}:${payload.channel}`;
 
-    const saved = await this.notifRepo.save(notification);
-    this.logger.log(`SAVED METADATA: ${JSON.stringify(saved.metadata)}`);
-    await this.dispatch(saved);
+    try {
+      const existing = await this.notifRepo.findOne({
+        where: {
+          recipientId: payload.recipientId,
+          type: payload.type,
+          channel: payload.channel,
+          correlationId,
+        },
+      });
+
+      if (existing) {
+        this.logger.warn(
+          `Duplicate notification skipped: ${payload.type} for ${payload.recipientId}`,
+        );
+        return;
+      }
+
+      const notification = this.notifRepo.create({
+        recipientId: payload.recipientId,
+        recipientType: payload.recipientType,
+        type: payload.type,
+        channel: payload.channel,
+        correlationId,
+        title,
+        message,
+        metadata: payload.metadata,
+        status: NotificationStatus.PENDING,
+      });
+
+      const saved = await this.notifRepo.save(notification);
+
+      if (!saved) {
+        this.logger.error(
+          `Notification record missing after insert: ${payload.type} for ${payload.recipientId}`,
+        );
+        return;
+      }
+      this.logger.log(`Saved METADATA: ${JSON.stringify(saved.metadata)}`);
+      await this.dispatch(saved);
+    } catch (error) {
+      this.logger.log(
+        `Notification creation failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   private async dispatch(notification: Notification) {
@@ -120,21 +138,28 @@ export class NotificationService {
       `[EMAIL] To: ${notification.recipientId} | ${notification.title}`,
     );
     const meta = notification.metadata as {
+      role: 'user' | 'vendor';
       email: string;
-      firstName: string;
-      otp: string;
-      verificationLink: string;
+      firstName?: string;
+      lastName?: string;
+      businessName?: string;
+      otp?: string;
+      verificationLink?: string;
     };
     console.log('Verfication Link Meta Details', meta);
 
-    await this.mailService.sendMail({
+    const mailPayload = {
       to: meta.email,
       subject: notification.title,
-      firstName: meta.firstName,
       otp: meta.otp,
       verificationLink: meta.verificationLink,
-    });
-    console.log('Verfication Link Meta Details', meta);
+      type: meta.role,
+      ...(meta.role === 'user'
+        ? { firstName: meta.firstName }
+        : { businessName: meta.businessName }),
+    };
+    this.logger.log(`Sending email to: ${meta.email} as ${meta.role}`);
+    await this.mailService.sendMail(mailPayload);
   }
 
   private sendInApp(notification: Notification) {
@@ -157,31 +182,31 @@ export class NotificationService {
         take: 50,
       });
 
-      if (!existing) {
+      if (!existing || existing.length === 0) {
         throw new ConflictException(
           `Notification with ${recipientId} does not exist`,
         );
       }
 
       return {
-        message: 'Recipient Id was found successful',
+        message: 'Recipient notifications was found successful',
         Recipient: existing,
       };
     } catch (error) {
-      handleErrors(error, this.logger, 'Recipient found');
+      handleErrors(error, this.logger, 'Find by recipient failed');
     }
   }
 
   async markAsRead(notifId: string, recipientId: string) {
     try {
       const findCheckMark = await this.notifRepo.findOne({
-        where: { recipientId },
+        where: { id: notifId, recipientId },
       });
 
       if (!findCheckMark) {
         throw new RpcException({
           status: HttpStatus.NOT_FOUND,
-          message: 'Marked Item not found',
+          message: 'Marked notification not found',
         });
       }
 
@@ -219,11 +244,13 @@ export class NotificationService {
         { recipientId, isRead: false },
         { isRead: true, readtAt: new Date() },
       );
-      const updatedMessages = await this.notifRepo.findOne({
+      const updatedMessages = await this.notifRepo.find({
         where: { recipientId },
+        order: { createdAt: 'DESC' },
+        take: 50,
       });
       return {
-        message: 'All messages gotten',
+        message: 'All mark as read messages gotten',
         Updated: updatedMessages,
       };
     } catch (error) {
@@ -240,7 +267,7 @@ export class NotificationService {
       if (!existingMessage) {
         throw new RpcException({
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'No message has been found',
+          message: 'No message has been found for this recipient',
         });
       }
 

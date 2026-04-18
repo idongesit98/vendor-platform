@@ -29,9 +29,16 @@ interface UserNotificationData {
   verificationLink?: string;
 }
 
-interface VerificationData {
-  vendorId: string;
+interface VendorNotificationDate {
+  businessName: string;
+  phone: string;
+  otp?: string;
+  verificationLink?: string;
 }
+
+// interface VerificationData {
+//   vendorId: string;
+// }
 
 const shortOrderId = (orderId: string) => orderId.slice(0, 8);
 
@@ -41,6 +48,7 @@ const shortOrderId = (orderId: string) => orderId.slice(0, 8);
 type NotificationPayloadMap = {
   [NotificationType.USER_REGISTERED]: UserNotificationData;
   [NotificationType.EMAIL_VERIFICATION]: UserNotificationData;
+  [NotificationType.USER_OTP_RESENT]: UserNotificationData;
   [NotificationType.ORDER_CREATED]: OrderNotificationsData;
   [NotificationType.ORDER_CONFIRMED]: OrderNotificationsData;
   [NotificationType.ORDER_PREPARING]: OrderNotificationsData;
@@ -52,7 +60,9 @@ type NotificationPayloadMap = {
   [NotificationType.PAYMENT_COMPLETED]: PaymentNotificationData;
   [NotificationType.PAYMENT_FAILED]: PaymentNotificationData;
 
-  [NotificationType.VENDOR_VERIFIED]: VerificationData;
+  [NotificationType.VENDOR_REGISTERED]: VendorNotificationDate;
+  [NotificationType.VENDOR_VERIFIED]: VendorNotificationDate;
+  [NotificationType.VENDOR_OTP_RESENT]: VendorNotificationDate;
 };
 
 /**
@@ -100,6 +110,13 @@ export const notificationTemplates: {
         `Hi ${data.firstName}, your OTP is ${data.otp}. It expires in 10minutes`,
     },
   },
+  [NotificationType.USER_OTP_RESENT]: {
+    [RecipientType.USER]: {
+      title: () => 'Otp Resent',
+      message: (data: UserNotificationData) =>
+        `Hi ${data.firstName}, your OTP is ${data.otp}, it expires in 10 minutes`,
+    },
+  },
   [NotificationType.ORDER_CREATED]: {
     [RecipientType.VENDOR]: {
       title: () => 'New Order Received',
@@ -117,6 +134,12 @@ export const notificationTemplates: {
       title: () => 'Order confirmed',
       message: (data: OrderNotificationsData) =>
         `Your order ${shortOrderId(data.orderId)} is processing for pickup/delivery.`,
+    },
+
+    [RecipientType.VENDOR]: {
+      title: () => 'Order confirmed',
+      message: (data: OrderNotificationsData) =>
+        `You have confirmed the following order ${shortOrderId(data.orderId)} for processing to pickup/delivery.`,
     },
   },
   [NotificationType.ORDER_PREPARING]: {
@@ -138,6 +161,11 @@ export const notificationTemplates: {
       title: () => 'Order Delivered',
       message: (data: OrderNotificationsData) =>
         `Your order ${shortOrderId(data.orderId)} has been delivered. Enjoy your meal!`,
+    },
+    [RecipientType.VENDOR]: {
+      title: () => 'Order Delivered',
+      message: (data: OrderNotificationsData) =>
+        `Order ${shortOrderId(data.orderId)} has been delivered to your customer.`,
     },
   },
   [NotificationType.ORDER_CANCELLED]: {
@@ -178,11 +206,25 @@ export const notificationTemplates: {
         `Payment for order #${data.totalAmount} failed. Please try again.`,
     },
   },
+  [NotificationType.VENDOR_REGISTERED]: {
+    [RecipientType.VENDOR]: {
+      title: () => 'Vendor successfully registered',
+      message: (data: VendorNotificationDate) =>
+        `Hi ${data.businessName}, welcome! Please verify your email address`,
+    },
+  },
   [NotificationType.VENDOR_VERIFIED]: {
     [RecipientType.VENDOR]: {
       title: () => 'Account Verified',
-      message: (data: VerificationData) =>
-        `Congratulations! Your vendor account ${data.vendorId} has been verified. You can now start receiving orders.`,
+      message: (data: VendorNotificationDate) =>
+        `Congratulations! Your vendor account ${data.businessName} has been verified. You can now proceed to setup your page with sumptous meals.`,
+    },
+  },
+  [NotificationType.VENDOR_OTP_RESENT]: {
+    [RecipientType.VENDOR]: {
+      title: () => 'Vendor successfully registered awaiting resent OTP',
+      message: (data: VendorNotificationDate) =>
+        `Hi ${data.businessName}, welcome. You missed your otp and we value you enough to resend one to you.`,
     },
   },
 };

@@ -21,4 +21,9 @@ export class CategoryController {
   singleCategory(@Payload() catId: string) {
     return this.categoryService.getCategoryById(catId);
   }
+
+  @MessagePattern({ cmd: 'category.delete' })
+  deleteCategory(@Payload() payload: { catId: string }) {
+    return this.categoryService.deleteCategory(payload.catId);
+  }
 }

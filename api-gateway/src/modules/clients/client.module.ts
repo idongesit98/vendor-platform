@@ -2,6 +2,7 @@ import {
   MENU_ITEM_SERVICE,
   NOTIFICATION_SERVICE,
   ORDER_SERVICE,
+  PAYMENT_SERVICE,
   USER_SERVICE,
 } from '@/common/utils';
 import { Module } from '@nestjs/common';
@@ -57,9 +58,23 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: NOTIFICATION_SERVICE,
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => {
-          const host = configService.get<string>('services.order.host');
+          const host = configService.get<string>('services.notification.host');
           const port = configService.get<number>('services.notification.port');
           console.log('NOTIFICATION_SERVICE connecting to:', { host, port });
+          return {
+            transport: Transport.TCP,
+            options: { host, port },
+          };
+        },
+        inject: [ConfigService],
+      },
+      {
+        name: PAYMENT_SERVICE,
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const host = configService.get<string>('services.payment.host');
+          const port = configService.get<number>('services.payment.port');
+          console.log('PAYMENT_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
             options: { host, port },

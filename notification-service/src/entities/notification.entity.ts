@@ -8,13 +8,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-@Index(['recipientId', 'type', 'channel', 'correlationId'], { unique: true })
+@Unique('UQ_notification', ['recipientId', 'type', 'channel', 'correlationId'])
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,7 +22,7 @@ export class Notification {
   @Column()
   recipientId: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   correlationId: string;
 
   @Column({ type: 'enum', enum: RecipientType })
