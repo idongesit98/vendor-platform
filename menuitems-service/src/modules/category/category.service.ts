@@ -84,4 +84,24 @@ export class CategoryService {
       return handleErrors(error, this.logger, 'Single category found');
     }
   }
+
+  async deleteCategory(catId: string) {
+    try {
+      const category = await this.categoryRepository.findOne({
+        where: { id: catId },
+      });
+      if (!category || category.id != catId) {
+        throw new RpcException(`Category with #${catId} not found`);
+      }
+
+      const deleted = await this.categoryRepository.remove(category);
+
+      return {
+        message: `Category with #${catId} deleted successfully`,
+        Deleted: deleted,
+      };
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to delete category');
+    }
+  }
 }

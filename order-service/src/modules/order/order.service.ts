@@ -136,7 +136,7 @@ export class OrderService {
         totalAmount,
         items: orderItems.map((i) => ({
           name: i.menuItemId,
-          quantiy: i.quantity,
+          quantity: i.quantity,
           price: i.price,
         })),
       })
@@ -201,6 +201,12 @@ export class OrderService {
 
   async findOrderById(orderId: string) {
     try {
+      if (!orderId) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Order Id is required',
+        });
+      }
       const order = await this.orderRepository.findOne({
         where: { id: orderId },
         relations: ['items'],
@@ -279,6 +285,102 @@ export class OrderService {
       };
     } catch (error) {
       handleErrors(error, this.logger, 'Order not successfully updated');
+    }
+  }
+
+  async cancelOrder(orderId: string, userId: string) {
+    try {
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['items'],
+      });
+
+      if (!order) {
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Order not found',
+        });
+      }
+
+      if (order.userId !== userId) {
+        throw new RpcException({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'You are not authorized to cancel this order',
+        });
+      }
+
+      const cancellableStatus = [OrderStatus.PENDING];
+
+      if (!cancellableStatus.includes(order.status)) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `Order cannot be cancelled. Current status: ${order.status}`,
+        });
+      }
+
+      await this.orderRepository.update(
+        { id: orderId },
+        { status: OrderStatus.CANCELLED },
+      );
+
+      const cancelledOrder = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['items'],
+      });
+
+      this.notificationClient
+        .emit('order.cancelled', {
+          orderId,
+          userId,
+          vendorId: order.vendorId,
+          totalAmount: order.totalAmount,
+        })
+        .pipe(
+          catchError((err: Error) => {
+            this.logger.error(`Failed to emit order.cancelled: ${err.message}`);
+            return of(null);
+          }),
+        )
+        .subscribe({
+          next: () =>
+            this.logger.log('Order cancelled event emitted successfully'),
+          error: (err: Error) =>
+            this.logger.error(`Emit error: ${err.message}`),
+        });
+
+      this.logger.log(`Order ${orderId} cancelled by user ${userId}`);
+
+      return {
+        message: 'Order cancelled successfully',
+        Cancelled: cancelledOrder,
+      };
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to cancel order');
+    }
+  }
+
+  async deleteOrder(orderId: string, vendorId: string) {
+    try {
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+      });
+
+      if (order) {
+        await this.orderRepository.delete(orderId);
+        return {
+          message: 'Order deleted successfully',
+          Deleted: order,
+        };
+      }
+
+      if (order!.vendorId !== vendorId) {
+        throw new RpcException({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'You are not authorized to delete this order',
+        });
+      }
+    } catch (error) {
+      handleErrors(error, this.logger, 'Failed to delete order');
     }
   }
 }

@@ -1,6 +1,7 @@
 export enum NotificationType {
   USER_REGISTERED = 'user.registered',
   EMAIL_VERIFICATION = 'user.verified',
+  USER_OTP_RESENT = 'user.otp.resent',
   ORDER_CREATED = 'order_created',
   ORDER_CONFIRMED = 'order_confirmed',
   ORDER_PREPARING = 'order_preparing',
@@ -10,7 +11,9 @@ export enum NotificationType {
   PAYMENT_INITIATED = 'payment_initiated',
   PAYMENT_COMPLETED = 'payment_completed',
   PAYMENT_FAILED = 'payment_failed',
+  VENDOR_REGISTERED = 'vendor.registered',
   VENDOR_VERIFIED = 'vendor_verified',
+  VENDOR_OTP_RESENT = 'vendor.otp.resent',
 }
 
 export enum NotificationChannel {

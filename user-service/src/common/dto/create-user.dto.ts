@@ -7,16 +7,16 @@ import {
 
 export class CreateUserDto {
   @IsString()
-  firstName: string;
+  firstName: string = '';
 
   @IsString()
-  lastName: string;
+  lastName: string = '';
 
   @IsEmail()
-  email: string;
+  email: string = '';
 
   @IsString()
   @IsStrongPassword()
   @MinLength(6)
-  password: string;
+  password: string = '';
 }

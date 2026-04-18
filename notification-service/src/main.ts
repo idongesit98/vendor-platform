@@ -2,10 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger } from 'nestjs-pino';
+import { setUpDeadLetterQueue } from './common/utils/rmq-helpers';
 
 async function bootstrap() {
+  await setUpDeadLetterQueue();
   const app = await NestFactory.create(AppModule);
-
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
@@ -13,8 +14,15 @@ async function bootstrap() {
         process.env.RABBITMQ_URL ?? 'amqp://admin:admin@notify-rabbitmq:5672',
       ],
       queue: 'notification_queue',
-      queueOptions: { durable: true },
+      queueOptions: {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': 'notification.dlx',
+          'x-dead-letter-routing-key': 'notification.dlx',
+        },
+      },
       noAck: false,
+      prefetchCount: 10,
     },
   });
 

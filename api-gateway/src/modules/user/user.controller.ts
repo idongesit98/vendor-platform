@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -14,6 +15,9 @@ import {
   CreateUserDto,
   CreateVendorDto,
   LoginUserDto,
+  ResendOtp,
+  UpdateUserDto,
+  UpdateVendorDto,
   VerifyEmailDto,
 } from './dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -77,14 +81,11 @@ export class UserController {
   @ApiResponse(SwaggerResponses.unauthorized)
   @ApiResponse(SwaggerResponses.notFound)
   @ApiResponse(SwaggerResponses.internalServerError)
-  verifyUsersEmail(
-    @Query() query: { email: string; emailVerificationOtp: string },
-    @Body() verifyDto: VerifyEmailDto,
-  ) {
+  verifyUsersEmail(@Query() query: VerifyEmailDto) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-user-email' },
-      { ...verifyDto, ...query },
+      { ...query },
     );
   }
 
@@ -99,14 +100,11 @@ export class UserController {
   @ApiResponse(SwaggerResponses.unauthorized)
   @ApiResponse(SwaggerResponses.notFound)
   @ApiResponse(SwaggerResponses.internalServerError)
-  verifyVendorsEmail(
-    @Query() query: { email: string; emailVerificationOtp: string },
-    @Body() verifyDto: VerifyEmailDto,
-  ) {
+  verifyVendorsEmail(@Query() query: VerifyEmailDto) {
     return sendToService(
       this.client,
       { cmd: 'auth.verify-vendor-email' },
-      { ...verifyDto, ...query },
+      { ...query },
     );
   }
 
@@ -123,6 +121,42 @@ export class UserController {
   @ApiResponse(SwaggerResponses.internalServerError)
   login(@Body() loginDto: LoginUserDto) {
     return sendToService(this.client, { cmd: 'auth.login' }, loginDto);
+  }
+
+  @Post('resend-otp/user')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend OTP to user email' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'OTP resent successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  resendUserOtp(@Body() emailDto: ResendOtp) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.resend-user-otp' },
+      emailDto,
+    );
+  }
+
+  @Post('resend-otp/vendor')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend OTP to vendor email' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'OTP resent successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  resendvendorOtp(@Body() emailDto: ResendOtp) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.resend-vendor-otp' },
+      emailDto,
+    );
   }
 
   @Get('all')
@@ -151,6 +185,45 @@ export class UserController {
   @ApiResponse(SwaggerResponses.internalServerError)
   findById(@Param('id') userId: string) {
     return sendToService(this.client, { cmd: 'auth.single-user' }, { userId });
+  }
+
+  @Patch('update-user/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Update a user using the userId',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  updateUser(@Param('id') userId: string, @Body() updateUser: UpdateUserDto) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.update-user' },
+      { userId, updateUser },
+    );
+  }
+
+  @Patch('update-vendor/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Update a vendor using the vendorId',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  updateVendor(
+    @Param('id') vendorId: string,
+    @Body() updateVendor: UpdateVendorDto,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.update-vendor' },
+      { vendorId, updateVendor },
+    );
   }
 
   @Delete('delete/:id')

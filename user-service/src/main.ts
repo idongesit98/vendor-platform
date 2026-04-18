@@ -13,13 +13,13 @@ async function bootstrap() {
 
   try {
     await app.startAllMicroservices();
-    console.log('✅ TCP Microservice listening on port 4000');
+    console.log('TCP Microservice listening on port 4000');
   } catch (error) {
-    console.error('❌ Microservice failed to start:', error);
+    console.error('Microservice failed to start:', error);
   }
-  await app.listen(process.env.PORT ?? 3001); // HTTP port — different!
+  await app.listen(process.env.PORT ?? 3001);
   console.log(
-    'Application started successfully, ✅ HTTP server running on port 3001',
+    'Application started successfully, HTTP server running on port 3001',
   );
 }
 void bootstrap();

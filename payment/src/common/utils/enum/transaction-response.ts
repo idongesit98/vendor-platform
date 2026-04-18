@@ -1,3 +1,5 @@
+import { PaymentStatus } from './payment-status';
+
 export interface InitializeTransactionResponse {
   reference: string;
   paymentUrl: string;
@@ -5,7 +7,7 @@ export interface InitializeTransactionResponse {
 }
 
 export interface VerifyTransactionResponse {
-  status: Status;
+  status: PaymentStatus;
   reference: string;
   amount: number;
   paidAt: string;
@@ -13,9 +15,9 @@ export interface VerifyTransactionResponse {
   raw: Record<string, unknown>;
 }
 
-export enum Status {
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  ABANDONED = 'abandoned',
-  PENDING = 'pending',
-}
+// export enum Status {
+//   SUCCESS = 'success',
+//   FAILED = 'failed',
+//   ABANDONED = 'abandoned',
+//   PENDING = 'pending',
+// }

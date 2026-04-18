@@ -2,14 +2,14 @@ import { IsString } from 'class-validator';
 
 export class UpdateVendor {
   @IsString()
-  businessName: string;
+  businessName: string = '';
 
   @IsString()
-  phone: string;
+  phone: string = '';
 
   @IsString()
-  address: string;
+  address: string = '';
 
   @IsString()
-  description: string;
+  description: string = '';
 }

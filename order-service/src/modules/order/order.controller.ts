@@ -1,17 +1,20 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateOrderDto, UpdateOrderStatusDto } from '../dto';
 
 @Controller('order')
 export class OrderController {
+  private readonly logger = new Logger(OrderController.name, {
+    timestamp: true,
+  });
   constructor(private readonly orderService: OrderService) {}
 
   @MessagePattern({ cmd: 'order.created' })
   createOrder(
     @Payload() payload: { userId: string; createDto: CreateOrderDto },
   ) {
-    console.log('Receiving payload', payload);
+    this.logger.log('Receiving payload', payload);
     return this.orderService.createOrder(payload.userId, payload.createDto);
   }
 
@@ -44,6 +47,16 @@ export class OrderController {
       payload.vendorId,
       payload.updateDto,
     );
+  }
+
+  @MessagePattern({ cmd: 'order.cancelled' })
+  cancelOrder(@Payload() payload: { orderId: string; userId: string }) {
+    return this.orderService.cancelOrder(payload.orderId, payload.userId);
+  }
+
+  @MessagePattern({ cmd: 'order.delete' })
+  deleteOrder(@Payload() payload: { orderId: string; vendorId: string }) {
+    return this.orderService.deleteOrder(payload.orderId, payload.vendorId);
   }
 
   @MessagePattern({ cmd: 'health' })

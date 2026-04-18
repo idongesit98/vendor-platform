@@ -1,21 +1,23 @@
+import { PaymentStatus } from '@/common/utils/enum';
 import {
   InitializeTransactionResponse,
-  Status,
   VerifyTransactionResponse,
 } from '@/common/utils/enum/transaction-response';
 import { HttpService } from '@nestjs/axios';
-import { HttpStatus, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { createHmac } from 'crypto';
 import { firstValueFrom } from 'rxjs';
 
+@Injectable()
 export class PaystackProvider {
   private readonly logger = new Logger(PaystackProvider.name, {
     timestamp: true,
   });
   private readonly secretKey: string;
   private readonly baseUrl: string;
+  private readonly callbackUrl: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -23,6 +25,7 @@ export class PaystackProvider {
   ) {
     this.secretKey = this.configService.get<string>('paystack.secretKey')!;
     this.baseUrl = this.configService.get<string>('paystack.baseUrl')!;
+    this.callbackUrl = this.configService.get<string>('paystack.callbackUrl')!;
   }
 
   async InitializeTransaction(params: {
@@ -30,7 +33,6 @@ export class PaystackProvider {
     amount: number;
     reference: string;
     metadata: Record<string, unknown>;
-    callbackUrl: string;
   }): Promise<InitializeTransactionResponse> {
     try {
       const response = await firstValueFrom(
@@ -41,13 +43,14 @@ export class PaystackProvider {
             amount: Math.round(params.amount * 100),
             reference: params.reference,
             metadata: params.metadata,
-            callback_url: params.callbackUrl,
+            callback_url: this.callbackUrl,
           },
           {
             headers: {
               Authorization: `Bearer ${this.secretKey}`,
               'Content-Type': 'application/json',
             },
+            timeout: 30000,
           },
         ),
       );
@@ -100,7 +103,7 @@ export class PaystackProvider {
       };
 
       return {
-        status: data.status as Status,
+        status: data.status as PaymentStatus,
         reference: data.reference,
         amount: data.amount / 100,
         paidAt: data.paid_at,

@@ -5,6 +5,7 @@ import { ORDER_SERVICE, sendToService } from '@/common/utils';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -61,6 +62,7 @@ export class OrderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HttpCode(HttpStatus.OK)
   @Roles(Role.CUSTOMER)
+  @ApiOperation({ summary: 'Get order made by a user' })
   @ApiSuccessResponse({
     status: 200,
     description: 'Get all orders made by a user',
@@ -123,6 +125,51 @@ export class OrderController {
       this.client,
       { cmd: 'order.status-updated' },
       { orderId, vendorId, updateDto },
+    );
+  }
+
+  @Patch('cancel/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CUSTOMER)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel a customer order' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Order cancelled successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  cancelOrder(
+    @Param('id') orderId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'order.cancelled' },
+      { orderId, userId },
+    );
+  }
+
+  @Delete('delete/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.VENDOR)
+  @ApiOperation({ summary: 'Delete customer order' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Orders deleted successfully',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  deleteOrder(
+    @Param('id') orderId: string,
+    @CurrentUser('sub') vendorId: string,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'order.delete' },
+      { orderId, vendorId },
     );
   }
 }

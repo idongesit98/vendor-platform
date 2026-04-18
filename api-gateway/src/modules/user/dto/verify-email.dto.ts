@@ -7,7 +7,7 @@ export class VerifyEmailDto {
     description: 'Verfy the email you used on creation',
   })
   @IsEmail()
-  email: string;
+  email: string = '';
 
   @ApiProperty({
     example: '123456',
@@ -15,5 +15,5 @@ export class VerifyEmailDto {
   })
   @IsString()
   @Length(6, 6)
-  emailVerificationOtp: string;
+  emailVerificationOtp: string = '';
 }

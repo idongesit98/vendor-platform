@@ -16,16 +16,16 @@ export class CreateVendorDto {
   })
   @IsString()
   @IsNotEmpty()
-  businessName: string;
+  businessName: string = '';
 
   @ApiProperty({ example: 'hiliary', description: 'Email of the user' })
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email: string = '';
 
   @ApiProperty({ example: 'password123', description: 'Password of the user' })
   @IsString()
-  password: string;
+  password: string = '';
 
   @ApiProperty({ example: Role.VENDOR, description: 'Role of the user' })
   @IsEnum(Role)
@@ -46,19 +46,19 @@ export class CreateVendorDto {
     description: 'Phone number of the user',
   })
   @IsString()
-  phone: string;
+  phone: string = '';
 
   @ApiProperty({
     example: '12 Tosin street off Emina Crescent',
     description: 'Address of the vendor',
   })
   @IsString()
-  address: string;
+  address: string = '';
 
   @ApiProperty({
     example: 'Short details about the vendor',
     description: 'Describe the business',
   })
   @IsString()
-  description: string;
+  description: string = '';
 }

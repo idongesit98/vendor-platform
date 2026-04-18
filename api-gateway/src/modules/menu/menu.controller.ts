@@ -66,7 +66,7 @@ export class MenuController {
 
   @Get('all')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all available memu' })
+  @ApiOperation({ summary: 'Get all available menu' })
   @ApiSuccessResponse({
     status: 200,
     description: 'All menu returned successfully',
@@ -94,7 +94,7 @@ export class MenuController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find a user b ID of vendor' })
+  @ApiOperation({ summary: 'Find a user by ID of the vendor' })
   @ApiSuccessResponse({
     status: 200,
     description: 'Verify email created',
@@ -111,6 +111,14 @@ export class MenuController {
   @Roles(Role.VENDOR)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a menu created by a vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Update a category',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
   menuUpdate(
     @Param('id') menuId: string,
     @Body() updateDto: UpdateMenuDto,
@@ -128,10 +136,10 @@ export class MenuController {
   @Roles(Role.VENDOR)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'DELETe vendor' })
+  @ApiOperation({ summary: 'Delete a vendor' })
   @ApiSuccessResponse({
     status: 200,
-    description: 'Verify email created',
+    description: 'Delete a vendor',
   })
   @ApiResponse(SwaggerResponses.unauthorized)
   @ApiResponse(SwaggerResponses.notFound)

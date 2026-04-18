@@ -6,11 +6,12 @@ import {
   CreateVendorDto,
   LoginDto,
   UpdateUserDto,
+  UpdateVendor,
   VerifyEmailDto,
 } from '@/common/dto';
 import { JwtPayload } from '@/common/interfaces';
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -25,7 +26,7 @@ export class AuthController {
   }
 
   @MessagePattern({ cmd: 'auth.verify-vendor-email' })
-  emailVerificationVendord(@Payload() data: VerifyEmailDto) {
+  emailVerificationVendor(@Payload() data: VerifyEmailDto) {
     return this.authService.verifyVendorsEmail(data);
   }
 
@@ -49,6 +50,16 @@ export class AuthController {
     return this.authService.loginUsers(loginDto);
   }
 
+  @MessagePattern({ cmd: 'auth.resend-user-otp' })
+  resendUserOtp(@Payload() payload: { email: string }) {
+    return this.authService.resendUserOtp(payload.email);
+  }
+
+  @MessagePattern({ cmd: 'auth.resend-vendor-otp' })
+  resendVendorOtp(@Payload() payload: { email: string }) {
+    return this.authService.resendVendorOtp(payload.email);
+  }
+
   @MessagePattern({ cmd: 'auth.validate-token' })
   validateToken(@Payload() payload: { token: string }): Promise<JwtPayload> {
     return this.authService.validateToken(payload.token);
@@ -59,6 +70,12 @@ export class AuthController {
     return this.authService.updateUser(data.userId, data.updateUser);
   }
 
+  @MessagePattern({ cmd: 'auth.update-vendor' })
+  vendorUpdate(
+    @Payload() data: { vendorId: string; updateVendor: UpdateVendor },
+  ) {
+    return this.authService.updateVendor(data.vendorId, data.updateVendor);
+  }
   @MessagePattern({ cmd: 'auth.single-user' })
   singleUser(@Payload() data: { id: string }) {
     return this.authService.findSingleUser(data.id);
