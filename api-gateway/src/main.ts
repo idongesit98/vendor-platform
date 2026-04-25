@@ -6,6 +6,7 @@ import { json, urlencoded } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import basicAuth from 'express-basic-auth';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   const swaggerUser = process.env.SWAGGER_USER;
   const swaggerPassword = process.env.SWAGGER_PASSWORD;
