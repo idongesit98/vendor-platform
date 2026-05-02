@@ -15,6 +15,7 @@ export class PaymentController {
   InitializePayment(
     @Payload() payload: { userId: string; initializeDto: InitializePaymentDto },
   ) {
+    this.logger.log(`Payment received from ${payload.userId} and initializing`);
     return this.paymentService.initializePayment(
       payload.userId,
       payload.initializeDto,
@@ -23,6 +24,9 @@ export class PaymentController {
 
   @MessagePattern({ cmd: 'payment.verify' })
   verifyPayment(@Payload() payload: { reference: string; userId: string }) {
+    this.logger.log(
+      `Verify payment from ${payload.userId} using reference ${payload.reference}`,
+    );
     return this.paymentService.verifyPayment(payload.reference, payload.userId);
   }
 

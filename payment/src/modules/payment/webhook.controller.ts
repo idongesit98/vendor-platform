@@ -22,7 +22,7 @@ export class WebhookController {
 
   @Post('paystack')
   @HttpCode(HttpStatus.OK)
-  async handlePaystackWebhook(
+  async handlePayStackWebhook(
     @Req() req: express.Request,
     @Res() res: express.Response,
     @Headers('x-paystack-signature') signature: string,

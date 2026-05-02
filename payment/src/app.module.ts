@@ -1,18 +1,16 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PaymentModule } from './modules/payment/payment.module';
-import { HealthModule } from './health/health.module';
+import { PaymentModule } from '@modules/payment/payment.module';
+import { HealthModule } from '@health/health.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './common/config/configuration';
-import { validationSchema } from './common/config';
+import { LoggerConfig, validationSchema } from '@common/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { IdempotencyModule } from './idempotency/idempotency.module';
 import KeyvRedis from '@keyv/redis';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { NOTIFICATION_SERVICE } from './common/utils';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -54,33 +52,9 @@ import { NOTIFICATION_SERVICE } from './common/utils';
       },
       inject: [ConfigService],
     }),
-    ClientsModule.registerAsync([
-      {
-        name: NOTIFICATION_SERVICE,
-        imports: [ConfigModule],
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [
-              configService.get<string>('rabbitmq.url') ||
-                'amqp://admin:admin@localhost:5672',
-            ],
-            queue: 'notification_queue',
-            queueOptions: {
-              durable: true,
-              arguments: {
-                'x-dead-letter-exchange': 'notification.dlx',
-                'x-dead-letter-routing-key': 'notification.dlx',
-              },
-            },
-          },
-        }),
-        inject: [ConfigService],
-      },
-    ]),
+    LoggerModule.forRoot(LoggerConfig('Payment-Service')),
     PaymentModule,
     HealthModule,
-    LoggerModule,
     IdempotencyModule,
   ],
   controllers: [AppController],
