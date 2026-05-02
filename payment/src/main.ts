@@ -18,7 +18,7 @@ async function bootstrap() {
     options: { host: '0.0.0.0', port: 4004 },
   });
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3005);
 
   console.log('Payment Service TCP running on PORT 40O4');
   console.log('Payment Service Http running on PORT 3005');

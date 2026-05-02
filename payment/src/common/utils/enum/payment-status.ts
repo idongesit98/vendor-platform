@@ -3,8 +3,8 @@ export enum PaymentStatus {
   PROCESSING = 'processing',
   SUCCESS = 'success',
   FAILED = 'failed',
+  REFUND_PENDING = 'refund_pending',
   REFUNDED = 'refunded',
-  ABANDONED = 'abandoned',
 }
 
 export enum PaymentProvider {
