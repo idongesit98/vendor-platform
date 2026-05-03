@@ -6,11 +6,14 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Inject,
   Param,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -21,6 +24,7 @@ import {
   SwaggerResponses,
 } from '@/common/decorators/swagger';
 import { randomUUID } from 'crypto';
+import express from 'express';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -114,5 +118,41 @@ export class PaymentController {
       { cmd: 'payment.findByUser' },
       { userId },
     );
+  }
+
+  @Post('webhook/paystack')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'verify webhook payments' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Webhook received successfully',
+  })
+  async handlePayStackWebhook(
+    @Req() req: express.Request,
+    @Res() res: express.Response,
+    @Headers('x-paystack-signature') signature: string,
+  ) {
+    const rawBody =
+      (req as express.Request & { rawBody: Buffer }).rawBody?.toString() ??
+      JSON.stringify(req.body);
+
+    try {
+      const response = await fetch(
+        'http://localhost:3005/api/payment/webhook/paystack',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-paystack-signature': signature,
+          },
+          body: rawBody,
+        },
+      );
+      const data = (await response.json()) as Record<string, unknown>;
+      return res.status(200).json(data);
+    } catch (error) {
+      console.error('Error handling PayStack webhook:', error);
+      return res.status(200).json({ received: true });
+    }
   }
 }

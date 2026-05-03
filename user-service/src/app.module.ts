@@ -6,7 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './common/health/health.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { MailService } from './service/mail/mail.service';
+import { LoggerModule } from 'nestjs-pino';
+import { LoggerConfig } from './common/config/microservice.logger';
 
 @Module({
   imports: [
@@ -32,11 +33,10 @@ import { MailService } from './service/mail/mail.service';
       }),
       inject: [ConfigService],
     }),
+    LoggerModule.forRoot(LoggerConfig('User-Service')),
     HealthModule,
     UserModule,
     AuthModule,
-    AuthModule,
   ],
-  providers: [MailService],
 })
 export class AppModule {}

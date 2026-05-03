@@ -1,6 +1,7 @@
 import { Params } from 'nestjs-pino';
-import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
+import { IncomingMessage } from 'http';
+import { ServerResponse } from 'http';
 
 export const loggerConfig = (serviceName: string): Params => ({
   pinoHttp: {
@@ -12,7 +13,7 @@ export const loggerConfig = (serviceName: string): Params => ({
         ? () => `,"timestamp":"${new Date().toISOString()}"`
         : true,
     messageKey: 'message',
-    genReqId: (req: Request) =>
+    genReqId: (req: IncomingMessage) =>
       (req.headers['x-correlation-id'] as string) || randomUUID(),
     transport:
       process.env.NODE_ENV !== 'production'
@@ -41,29 +42,37 @@ export const loggerConfig = (serviceName: string): Params => ({
       environment: process.env.NODE_ENV,
     }),
 
-    customLogLevel: (_req: Request, res: Response, err?: Error) => {
+    customLogLevel: (
+      _req: IncomingMessage,
+      res: ServerResponse,
+      err?: Error,
+    ) => {
       if (err || res.statusCode >= 500) return 'error';
       if (res.statusCode >= 400) return 'warn';
       return 'info';
     },
 
-    customSuccessMessage: (req: Request, res: Response) => {
+    customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => {
       return `${req.method} ${req.url} ${res.statusCode}`;
     },
 
-    customErrorMessage: (req: Request, res: Response, err: Error) => {
+    customErrorMessage: (
+      req: IncomingMessage,
+      res: ServerResponse,
+      err: Error,
+    ) => {
       return `${req.method} ${req.url} ${res.statusCode} - ${err.message}`;
     },
 
     serializers: {
-      req(req: Request) {
+      req(req: IncomingMessage) {
         return {
           method: req.method,
           url: req.url,
           correlationId: req.headers['x-correlation-id'],
         };
       },
-      res(res: Response) {
+      res(res: ServerResponse) {
         return {
           statusCode: res.statusCode,
         };
