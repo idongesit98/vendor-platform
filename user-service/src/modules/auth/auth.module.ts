@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Review, User, Vendor } from '@/common/entities';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailModule } from '@/service/mail/mail.module';
 import { StringValue } from 'ms';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { NOTIFICATION_SERVICE } from '@/common/utils';
@@ -47,7 +46,6 @@ import { NOTIFICATION_SERVICE } from '@/common/utils';
         inject: [ConfigService],
       },
     ]),
-    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

@@ -6,7 +6,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validationSchema } from './common/config/validation.schema';
 import { HealthModule } from './common/health/health.module';
 import { CategoryModule } from './modules/category/category.module';
-import { LoggerModule } from './common/logger';
+import { LoggerModule } from 'nestjs-pino';
+import { microserviceLoggerConfig } from './common/config/microservice.logger';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { LoggerModule } from './common/logger';
       }),
       inject: [ConfigService],
     }),
-    LoggerModule,
+    LoggerModule.forRoot(microserviceLoggerConfig('MenuItem-Service')),
     HealthModule,
     CategoryModule,
     MenuItemModule,

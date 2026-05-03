@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HealthModule } from '@/health/health.module';
-import { LoggerModule } from '@/common/logger';
 import configuration from '@/common/config/configuration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderModule } from './modules/order/order.module';
 import { validationSchema } from './common/config';
+import { LoggerConfig } from './common/config/microservice.logger';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { validationSchema } from './common/config';
       }),
       inject: [ConfigService],
     }),
+    LoggerModule.forRoot(LoggerConfig('Order-service')),
     HealthModule,
     LoggerModule,
     OrderModule,

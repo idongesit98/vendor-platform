@@ -7,13 +7,17 @@ export interface JwtPayload {
   role: string;
 }
 
+interface AuthenticatedRequest extends Request {
+  user?: JwtPayload;
+}
+
 /**
  * Extract the current user from the jwt payload
  */
 
 export const CurrentUser = createParamDecorator(
   (data: keyof JwtPayload, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest<Request>();
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user as JwtPayload;
     return data ? user?.[data] : user;
   },

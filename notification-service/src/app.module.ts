@@ -7,8 +7,9 @@ import { NotificationModule } from './module/notification/notification.module';
 import { HealthModule } from './common/health/health.module';
 import configuration from './common/config/configuration';
 import { validationSchema } from './common/config/validation.schema';
-import { LoggerModule } from './common/logger';
 import { MailModule } from './module/mail/mail.module';
+import { LoggerModule } from 'nestjs-pino';
+import { LoggerConfig } from './common/config/microservice.logger';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { MailModule } from './module/mail/mail.module';
       }),
       inject: [ConfigService],
     }),
-    LoggerModule,
+    LoggerModule.forRoot(LoggerConfig('Notification-Service')),
     NotificationModule,
     HealthModule,
     MailModule,
