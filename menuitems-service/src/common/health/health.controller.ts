@@ -23,6 +23,6 @@ export class HealthController {
 
   @MessagePattern({ cmd: 'health' })
   healthCheck() {
-    return { status: 'ok', service: 'user-service' };
+    return { status: 'ok', service: 'menuitem-service' };
   }
 }

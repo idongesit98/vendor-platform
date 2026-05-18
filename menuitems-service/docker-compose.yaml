@@ -1,0 +1,46 @@
+services:
+  menuitem-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3002/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      menu-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - food-network
+
+  menu-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: menu_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - menu-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - food-network
+
+volumes:
+  menu-db-data:
+
+networks:
+  food-network:
+    external: true
