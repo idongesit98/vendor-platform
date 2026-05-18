@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger } from 'nestjs-pino';
-import { setUpDeadLetterQueue } from './common/utils/rmq-helpers';
+import { setUpDeadLetterQueue } from '@common/utils/rmq-helpers';
 
 async function bootstrap() {
   await setUpDeadLetterQueue();
@@ -39,7 +39,7 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3004);
   console.log(
-    'Notification service is listening on TCP port 4003 while RabbitMQ is emitting on notification_queue',
+    'Notification service is listening on TCP port 4003 Http port 3004,RabbitMQ is emitting on notification_queue',
   );
 }
 void bootstrap();

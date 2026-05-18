@@ -1,15 +1,57 @@
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: foody-rabbitmq
+  notification-service:
+    build:
+      context: .
+      target: production
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "3004:3004"
+    env_file:
+      - .env.docker
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      notification-db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - food-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  notification-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - notification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - food-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
 volumes:
-  rabbitmq_data:
+  notification-db-data:
+
+networks:
+  food-network:
+    external: true
