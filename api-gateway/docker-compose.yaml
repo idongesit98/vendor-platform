@@ -1,0 +1,24 @@
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
+    networks:
+      - food-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+networks:
+  food-network:
+    external: true

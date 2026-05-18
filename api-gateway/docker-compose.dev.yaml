@@ -1,0 +1,259 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      target: builder
+    volumes:
+      - ./api-gateway/src:/app/src
+      - ./api-gateway/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api-gateway/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - user-service
+      - menu-item-service
+      - order-service
+      - notification-service
+      - payment-service
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  user-service:
+    build:
+      context: ./user-service
+      target: builder
+    volumes:
+      - ./user-service/src:/app/src
+      - ./user-service/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    env_file:
+      - ./user-service/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      user-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  menu-item-service:
+    build:
+      context: ./menu-item-service
+      target: builder
+    volumes:
+      - ./menu-item-service/src:/app/src          # fixed: was menu-item-gateway
+      - ./menu-item-service/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    env_file:
+      - ./menu-item-service/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      menu-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  order-service:
+    build:
+      context: ./order-service
+      target: builder                             # fixed: was production
+    volumes:
+      - ./order-service/src:/app/src
+      - ./order-service/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    env_file:
+      - ./order-service/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      order-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      menu-item-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      target: builder
+    volumes:
+      - ./notification-service/src:/app/src       # fixed: was notif-service
+      - ./notification-service/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    env_file:
+      - ./notification-service/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  payment-service:
+    build:
+      context: ./payment-service
+      target: builder
+    volumes:
+      - ./payment-service/src:/app/src
+      - ./payment-service/tsconfig.json:/app/tsconfig.json
+    command: npm run start:dev
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./payment-service/..env.docker
+    environment:
+      NODE_ENV: development
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - foody-network
+
+  # --- Databases (lightweight, no restart policy needed for dev) ---
+  user-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  menu-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: menu_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - menu-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  order-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  notification-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  payment-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - foody-network
+
+volumes:
+  user-db-data:
+  menu-db-data:
+  order-db-data:
+  notification-db-data:
+  payment-db-data:
+  rabbitmq-data:
+  redis-data:
+
+networks:
+  foody-network:
+    driver: bridge
