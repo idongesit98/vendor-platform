@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './common/config/configuration';
-import { validationSchema } from './common/config/validation.schema';
+import { validationSchema } from '@common/config/validation.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HealthModule } from './common/health/health.module';
-import { UserModule } from './modules/user/user.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { HealthModule } from '@health/health.module';
+import { UserModule } from '@modules/user/user.module';
+import { AuthModule } from '@modules/auth/auth.module';
 import { LoggerModule } from 'nestjs-pino';
-import { LoggerConfig } from './common/config/microservice.logger';
+import { LoggerConfig } from '@common/config/microservice.logger';
 
 @Module({
   imports: [
