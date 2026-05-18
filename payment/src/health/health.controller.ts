@@ -18,14 +18,11 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check() {
-    return this.health.check([
-      () => this.http.pingCheck('google', 'https://google.com'),
-      () => this.db.pingCheck('database'),
-    ]);
+    return this.health.check([() => this.db.pingCheck('database')]);
   }
 
-  @MessagePattern({})
+  @MessagePattern({ cmd: 'health' })
   healthCheck() {
-    return { status: 'ok', service: 'user-service' };
+    return { status: 'ok', service: 'payment-service' };
   }
 }

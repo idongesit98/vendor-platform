@@ -22,16 +22,20 @@ export class PaymentOutboxRelayService {
     private readonly orderClient: ClientProxy,
   ) {}
 
-  async onModuleInit() {
-    try {
-      await this.notificationClient.connect();
-      this.logger.log('Payment Outbox Connected to RabbitMQ');
-    } catch (err: unknown) {
-      //const errorMessage = err instanceof Error ? err.message : String(err);
-      this.logger.error(
-        `RabbitMQ connection failed: ${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}`,
-      );
-    }
+  onModuleInit() {
+    const connect = (client: ClientProxy, name: string) =>
+      client
+        .connect()
+        .then(() => {
+          this.logger.log(`Connected to ${name}`);
+        })
+        .catch((err: unknown) => {
+          this.logger.error(
+            `${name} connection failed: ${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}`,
+          );
+        });
+    void connect(this.notificationClient, 'RabbitMQ (notification)');
+    void connect(this.orderClient, 'TCP (order)');
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)

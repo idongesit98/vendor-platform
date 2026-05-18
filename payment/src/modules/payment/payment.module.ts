@@ -13,11 +13,13 @@ import { IdempotencyModule } from '@/idempotency/idempotency.module';
 import { PaymentOutboxRelayService } from '@modules/payment/payment-outbox/payment-outbox.service';
 import { PaymentOutbox } from '@modules/entities/payment.outbox.entity';
 import { WebhookLog } from '@modules/entities/webhook-log.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Payment, WebhookLog, PaymentOutbox]),
     HttpModule,
+    ScheduleModule.forRoot(),
     ClientsModule.registerAsync([
       {
         name: ORDER_SERVICE,
@@ -39,7 +41,7 @@ import { WebhookLog } from '@modules/entities/webhook-log.entity';
           options: {
             urls: [
               configService.get<string>('rabbitmq.url') ||
-                'amqp://admin:admin@localhost:5672',
+                'amqp://guest:guest@rabbitmq:5672',
             ],
             queue: 'notification_queue',
             queueOptions: {

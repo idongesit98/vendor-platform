@@ -438,7 +438,7 @@ export class PaymentService {
     }
 
     /*
-     * If transaction is still pending call paystack to verify
+     * If transaction is still pending call PayStack to verify
      */
     const result = await this.payStackProvider.verifyTransaction(reference);
 
