@@ -7,6 +7,7 @@ export default () => ({
   },
   url: {
     front: process.env.FRONTEND_URL || 'http://localhost:3000/api/users/verify',
+    database: process.env.DATABASE_URL,
   },
   database: {
     host: process.env.DB_HOST || 'localhost',

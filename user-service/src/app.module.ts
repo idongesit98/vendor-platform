@@ -18,19 +18,30 @@ import { LoggerConfig } from '@common/config/microservice.logger';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('database.host'),
-        port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.username'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.name'),
-        autoLoadEntities: true,
-        synchronize: true,
-        migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
-        migrationsRun: true,
-        logging: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isProduction =
+          configService.get<string>('NODE_ENV') === 'production';
+
+        return {
+          type: 'postgres',
+          ...(isProduction
+            ? {
+                url: configService.get<string>('url.database'),
+              }
+            : {
+                host: configService.get<string>('database.host'),
+                port: configService.get<number>('database.port'),
+                username: configService.get<string>('database.username'),
+                password: configService.get<string>('database.password'),
+                database: configService.get<string>('database.name'),
+              }),
+          autoLoadEntities: true,
+          synchronize: !isProduction,
+          migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
+          migrationsRun: true,
+          logging: !isProduction,
+        };
+      },
       inject: [ConfigService],
     }),
     LoggerModule.forRoot(LoggerConfig('User-Service')),

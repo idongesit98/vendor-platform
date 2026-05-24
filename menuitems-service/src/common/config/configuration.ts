@@ -7,6 +7,7 @@ export default () => ({
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'idongesit98',
     name: process.env.DB_NAME || 'menu_db',
+    url: process.env.DATABASE_URL,
   },
   redis: {
     url: process.env.REDIS_URL,
