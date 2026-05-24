@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   CreateUserDto,
@@ -25,11 +26,15 @@ import { ClientProxy } from '@nestjs/microservices';
 import { sendToService, USER_SERVICE } from '@/common/utils';
 import { ApiSuccessResponse } from '@/common/decorators/swagger/success-response.decorator';
 import { SwaggerResponses } from '@/common/decorators/swagger';
+import { JwtAuthGuard, RolesGuard } from '@common/guards';
+import { Roles } from '@common/decorators';
+import { Role } from '@common/enums';
+import { ReviewVendorDto } from '@modules/user/dto/review-vendor.dto';
+import { ToggleAccountDto } from '@modules/user/dto/toggle-account.dto';
 
 @ApiTags('Auth')
 @Controller('users')
 export class UserController {
-  //constructor(private readonly userService: UserService) {}
   constructor(@Inject(USER_SERVICE) private readonly client: ClientProxy) {}
 
   @Post('create-user')
@@ -151,7 +156,7 @@ export class UserController {
   @ApiResponse(SwaggerResponses.unauthorized)
   @ApiResponse(SwaggerResponses.notFound)
   @ApiResponse(SwaggerResponses.internalServerError)
-  resendvendorOtp(@Body() emailDto: ResendOtp) {
+  resendVendorOtp(@Body() emailDto: ResendOtp) {
     return sendToService(
       this.client,
       { cmd: 'auth.resend-vendor-otp' },
@@ -185,6 +190,24 @@ export class UserController {
   @ApiResponse(SwaggerResponses.internalServerError)
   findById(@Param('id') userId: string) {
     return sendToService(this.client, { cmd: 'auth.single-user' }, { userId });
+  }
+
+  @Get('single/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get a single vendor by ID' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Find a single vendor',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  findVendorById(@Param('id') vendorId: string) {
+    return sendToService(
+      this.client,
+      { cmd: 'auth.single-vendor' },
+      { vendorId },
+    );
   }
 
   @Patch('update-user/:id')
@@ -223,6 +246,75 @@ export class UserController {
       this.client,
       { cmd: 'auth.update-vendor' },
       { vendorId, updateVendor },
+    );
+  }
+
+  @Patch('admin-review/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Vendor review' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Review vendor document if they are certified',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  reviewVendor(
+    @Param('id') vendorId: string,
+    @Body() reviewVendor: ReviewVendorDto,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'admin-review.vendor' },
+      { vendorId, reviewVendor },
+    );
+  }
+
+  @Patch('admin-toggle/user/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Changed the active status of a user' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Inactivate or Deactivate a user ',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  toggleUser(
+    @Param('id') userId: string,
+    @Body() toggleUser: ToggleAccountDto,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'admin-toggle.user' },
+      { userId, toggleUser },
+    );
+  }
+
+  @Patch('admin-toggle/vendor/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Changed the active status of a vendor' })
+  @ApiSuccessResponse({
+    status: 200,
+    description: 'Inactivate or Deactivate a vendor ',
+  })
+  @ApiResponse(SwaggerResponses.unauthorized)
+  @ApiResponse(SwaggerResponses.notFound)
+  @ApiResponse(SwaggerResponses.internalServerError)
+  toggleVendor(
+    @Param('id') vendorId: string,
+    @Body() toggleVendor: ToggleAccountDto,
+  ) {
+    return sendToService(
+      this.client,
+      { cmd: 'admin-toggle.vendor' },
+      { vendorId, toggleVendor },
     );
   }
 

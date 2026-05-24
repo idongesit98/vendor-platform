@@ -76,9 +76,15 @@ export class AuthController {
   ) {
     return this.authService.updateVendor(data.vendorId, data.updateVendor);
   }
+
   @MessagePattern({ cmd: 'auth.single-user' })
   singleUser(@Payload() data: { id: string }) {
     return this.authService.findSingleUser(data.id);
+  }
+
+  @MessagePattern({ cmd: 'auth.single-vendor' })
+  singleVendor(@Payload() data: { id: string }) {
+    return this.authService.findSingleVendor(data.id);
   }
 
   @MessagePattern({ cmd: 'auth.delete-user' })

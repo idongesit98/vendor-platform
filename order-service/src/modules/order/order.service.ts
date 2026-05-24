@@ -230,24 +230,24 @@ export class OrderService {
     vendorId: string,
     updateDto: UpdateOrderStatusDto,
   ) {
-    try {
-      const orderItem = await this.orderRepository.findOne({
-        where: { id: orderId },
+    const orderItem = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
+
+    if (!orderItem) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Order was not found',
       });
+    }
 
-      if (!orderItem) {
-        throw new RpcException({
-          status: HttpStatus.NOT_FOUND,
-          message: 'Order was not found',
-        });
-      }
-
-      if (orderItem?.vendorId !== vendorId) {
-        throw new RpcException({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'You are not authorized to update this order status',
-        });
-      }
+    if (orderItem?.vendorId !== vendorId) {
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'You are not authorized to update this order status',
+      });
+    }
+    try {
       await this.orderRepository.update(
         { id: orderId },
         { status: updateDto.status },
@@ -289,35 +289,33 @@ export class OrderService {
   }
 
   async cancelOrder(orderId: string, userId: string) {
-    try {
-      const order = await this.orderRepository.findOne({
-        where: { id: orderId },
-        relations: ['items'],
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['items'],
+    });
+
+    if (!order) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Order not found',
       });
+    }
+    if (order.userId !== userId) {
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'You are not authorized to cancel this order',
+      });
+    }
 
-      if (!order) {
-        throw new RpcException({
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'Order not found',
-        });
-      }
+    const cancellableStatus = [OrderStatus.PENDING];
 
-      if (order.userId !== userId) {
-        throw new RpcException({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'You are not authorized to cancel this order',
-        });
-      }
-
-      const cancellableStatus = [OrderStatus.PENDING];
-
-      if (!cancellableStatus.includes(order.status)) {
-        throw new RpcException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: `Order cannot be cancelled. Current status: ${order.status}`,
-        });
-      }
-
+    if (!cancellableStatus.includes(order.status)) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Order cannot be cancelled. Current status: ${order.status}`,
+      });
+    }
+    try {
       await this.orderRepository.update(
         { id: orderId },
         { status: OrderStatus.CANCELLED },

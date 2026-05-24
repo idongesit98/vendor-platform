@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Role } from '../enums';
+import { ApplicationStatus, Role } from '../enums';
 import { Review } from './review.entity';
 
 @Entity('vendors')
@@ -49,6 +49,19 @@ export class Vendor {
 
   @OneToMany(() => Review, (review) => review.vendor)
   reviews: Review[];
+
+  @Column({
+    type: 'enum',
+    enum: ApplicationStatus,
+    default: ApplicationStatus.PENDING,
+  })
+  applicationStatus: ApplicationStatus;
+
+  @Column({ nullable: true })
+  rejectionReason: string | undefined | null;
+
+  @Column({ nullable: true })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
