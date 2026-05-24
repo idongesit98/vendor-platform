@@ -35,7 +35,7 @@ https://api.fooddelivery.com/v1
 **Quick example — fetch open restaurants near you:**
 
 ```bash
-curl -X GET "https://api.fooddelivery.com/v1/restaurants?open_now=true&lat=6.45&lng=3.38" \
+curl -X GET "https://api.fooddelivery.com/v1/vendors?open_now=true&lat=6.45&lng=3.38" \
   -H "Authorization: Bearer <your_api_key>"
 ```
 
@@ -99,6 +99,6 @@ X-Signature: sha256=<hmac_hash>
 
 ## Support
 
-- 📧 [api-support@fooddelivery.com](mailto:api-support@fooddelivery.com)
-- 🐛 [GitHub Issues](https://github.com/fooddelivery/api-docs/issues)
+- 📧 [api-support@fooddelivery.com](mailto:robsonidongesitsamuel@gmail.com)
+- 🐛 [GitHub Issues](https://github.com/idongesit98/vendor-platform/issues)
 - 📖 [Swagger Docs](https://api.fooddelivery.com/docs)
