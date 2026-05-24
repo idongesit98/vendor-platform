@@ -5,7 +5,7 @@ export default () => ({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5434', 10),
     username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'idongesit98',
+    password: process.env.DB_PASSWORD || '',
     name: process.env.DB_NAME || 'payment_db',
   },
   paystack: {
@@ -31,6 +31,6 @@ export default () => ({
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6399', 10),
-    password: process.env.REDIS_PASSWORD || 'coleslaw',
+    password: process.env.REDIS_PASSWORD || '',
   },
 });

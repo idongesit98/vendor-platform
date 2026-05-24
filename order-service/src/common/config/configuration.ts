@@ -5,8 +5,9 @@ export default () => ({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5434', 10),
     username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'idongesit98',
+    password: process.env.DB_PASSWORD || '',
     name: process.env.DB_NAME || 'order_db',
+    url: process.env.DATABASE_URL,
   },
   services: {
     menuitem: {

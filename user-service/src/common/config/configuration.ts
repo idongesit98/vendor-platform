@@ -7,12 +7,13 @@ export default () => ({
   },
   url: {
     front: process.env.FRONTEND_URL || 'http://localhost:3000/api/users/verify',
+    database: process.env.DATABASE_URL,
   },
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5434', 10),
     username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'idongesit98',
+    password: process.env.DB_PASSWORD || '',
     name: process.env.DB_NAME || 'user_db',
   },
   redis: {

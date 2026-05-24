@@ -3,9 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HealthModule } from '@/health/health.module';
 import configuration from '@/common/config/configuration';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrderModule } from './modules/order/order.module';
-import { validationSchema } from './common/config';
-import { LoggerConfig } from './common/config/microservice.logger';
+import { OrderModule } from '@modules/order/order.module';
+import { validationSchema } from '@common/config';
+import { LoggerConfig } from '@common/config/microservice.logger';
 import { LoggerModule } from 'nestjs-pino';
 
 @Module({
@@ -17,19 +17,31 @@ import { LoggerModule } from 'nestjs-pino';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('database.host'),
-        port: configService.get('database.port'),
-        username: configService.get('database.username'),
-        password: configService.get('database.password'),
-        database: configService.get('database.name'),
-        autoLoadEntities: true,
-        synchronize: true,
-        migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
-        migrationsRun: true,
-        logging: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isProduction =
+          configService.get<string>('NODE_ENV') === 'production';
+
+        return {
+          type: 'postgres',
+          ...(isProduction
+            ? {
+                url: configService.get<string>('database.url'),
+              }
+            : {
+                host: configService.get<string>('database.host'),
+                port: configService.get<number>('database.port'),
+                username: configService.get<string>('database.username'),
+                password: configService.get<string>('database.password'),
+                database: configService.get<string>('database.name'),
+              }),
+          autoLoadEntities: true,
+          synchronize: !isProduction,
+          migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
+          migrationsRun: true,
+          logging: !isProduction,
+        };
+      },
+
       inject: [ConfigService],
     }),
     LoggerModule.forRoot(LoggerConfig('Order-service')),
