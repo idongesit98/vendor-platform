@@ -1,15 +1,8 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Inject,
-  Param,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from '@common/dto';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
-import { catchError, firstValueFrom, timeout } from 'rxjs';
+import { ReviewVendorDto } from '@common/dto/review-vendor.dto';
+import { ToggleAccountDto } from '@common/dto/toggle-account.dto';
 
 @Controller('user')
 export class UserController {
@@ -18,37 +11,46 @@ export class UserController {
     @Inject('MENU_SERVICE') private readonly menuClient: ClientProxy,
   ) {}
 
-  @MessagePattern({ cmd: 'user.create' })
-  create(@Payload() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @MessagePattern({ cmd: 'admin-review.vendor' })
+  reviewVendor(
+    @Payload() data: { vendorId: string; reviewVendor: ReviewVendorDto },
+  ) {
+    return this.userService.reviewVendorApplication(
+      data.vendorId,
+      data.reviewVendor,
+    );
   }
 
-  @MessagePattern({ cmd: 'user.findAll' })
-  findAll() {
-    return this.userService.findAll();
+  @MessagePattern({ cmd: 'admin-toggle.user' })
+  toggleUserAccountActiveness(
+    @Payload() data: { userId: string; toggleDto: ToggleAccountDto },
+  ) {
+    return this.userService.toggleUserAccount(data.userId, data.toggleDto);
   }
 
-  @MessagePattern({ cmd: 'user.findById' })
-  findById(@Payload() payload: { id: string }) {
-    return this.userService.findOne(payload.id);
+  @MessagePattern({ cmd: 'admin-toggle.vendor' })
+  toggleVendorAccountActiveness(
+    @Payload() data: { vendorId: string; toggleDto: ToggleAccountDto },
+  ) {
+    return this.userService.toggleVendorAccount(data.vendorId, data.toggleDto);
   }
 
   //@Get(':id/menu-items')
-  @MessagePattern({ cmd: 'user.user-menu' })
-  async getMenuItemsForUser(@Param('id', ParseUUIDPipe) id: string) {
-    // Optionally verify user exists first
-    await this.userService.findOne(id);
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return firstValueFrom(
-      this.menuClient.send({ cmd: 'menu.get-all' }, {}).pipe(
-        timeout(5000),
-        catchError(() => {
-          throw new BadRequestException('Menu service unavailable');
-        }),
-      ),
-    );
-  }
+  // @MessagePattern({ cmd: 'user.user-menu' })
+  // async getMenuItemsForUser(@Param('id', ParseUUIDPipe) id: string) {
+  //   // Optionally verify user exists first
+  //   await this.userService.findOne(id);
+  //
+  //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  //   return firstValueFrom(
+  //     this.menuClient.send({ cmd: 'menu.get-all' }, {}).pipe(
+  //       timeout(5000),
+  //       catchError(() => {
+  //         throw new BadRequestException('Menu service unavailable');
+  //       }),
+  //     ),
+  //   );
+  // }
 
   @MessagePattern({ cmd: 'health' })
   healthCheck() {

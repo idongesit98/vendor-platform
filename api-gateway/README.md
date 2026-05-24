@@ -1,98 +1,104 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🍔 Food Delivery API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A RESTful API for managing food delivery services — restaurants, menus, orders, delivery tracking, and payments.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+📖 **Full API Reference:** [Swagger UI →](https://api.fooddelivery.com/docs)
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Table of Contents
 
-## Project setup
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+- [Authentication](#authentication)
+- [Error Handling](#error-handling)
+- [Webhooks](#webhooks)
+- [Support](#support)
 
-```bash
-$ npm install
+---
+
+## Requirements
+
+- HTTPS client
+- A valid API key from the [dashboard](https://dashboard.fooddelivery.com)
+
+---
+
+## Getting Started
+
+**Base URL**
+
+```
+https://api.fooddelivery.com/v1
 ```
 
-## Compile and run the project
+**Quick example — fetch open restaurants near you:**
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+curl -X GET "https://api.fooddelivery.com/v1/restaurants?open_now=true&lat=6.45&lng=3.38" \
+  -H "Authorization: Bearer <your_api_key>"
 ```
 
-## Run tests
+For all available endpoints, request/response schemas, and live testing, see the **[Swagger docs](https://api.fooddelivery.com/docs)**.
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## Authentication
 
-# test coverage
-$ npm run test:cov
+All requests must include a Bearer token in the `Authorization` header:
+
+```http
+Authorization: Bearer <bearer_token>
 ```
 
-## Deployment
+Tokens expire after **24 hours**. Refresh using `POST /auth/refresh`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Get your API key at [https://dashboard.fooddelivery.com](https://dashboard.fooddelivery.com).
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+## Error Handling
+
+All errors return a consistent JSON structure:
+
+```json
+{
+  "error": {
+    "code": "ORDER_NOT_FOUND",
+    "message": "No order found with ID ord_00000",
+    "status": 404
+  }
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| HTTP Status | Meaning                                |
+|-------------|----------------------------------------|
+| `400`       | Bad request / invalid params           |
+| `401`       | Missing or invalid token               |
+| `403`       | Forbidden                              |
+| `404`       | Resource not found                     |
+| `422`       | Unprocessable (e.g. restaurant closed) |
+| `429`       | Rate limit exceeded                    |
+| `500`       | Internal server error                  |
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## Webhooks
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Register a webhook URL in your dashboard to receive real-time event notifications.
+
+**Supported events:** `order.confirmed`, `order.in_transit`, `order.delivered`, `order.cancelled`, `payment.succeeded`, `payment.failed`, `refund.processed`
+
+All webhook requests include an HMAC signature for verification:
+
+```
+X-Signature: sha256=<hmac_hash>
+```
+
+---
 
 ## Support
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- 📧 [api-support@fooddelivery.com](mailto:api-support@fooddelivery.com)
+- 🐛 [GitHub Issues](https://github.com/fooddelivery/api-docs/issues)
+- 📖 [Swagger Docs](https://api.fooddelivery.com/docs)

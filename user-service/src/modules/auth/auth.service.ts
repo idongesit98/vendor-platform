@@ -59,18 +59,17 @@ export class AuthService {
   }
 
   async createUser(createUser: CreateUserDto) {
-    try {
-      const existing = await this.userRepository.findOne({
-        where: { email: createUser.email },
+    const existing = await this.userRepository.findOne({
+      where: { email: createUser.email },
+    });
+
+    if (existing) {
+      throw new RpcException({
+        statusCode: HttpStatus.CONFLICT,
+        message: `Email ${createUser.email} is already registered`,
       });
-
-      if (existing) {
-        throw new RpcException({
-          statusCode: HttpStatus.CONFLICT,
-          message: `Email ${createUser.email} is already registered`,
-        });
-      }
-
+    }
+    try {
       const hashedPassword = await hashPasswordAndOtp(createUser.password);
       const otp = generateOtp();
 
@@ -111,18 +110,17 @@ export class AuthService {
   }
 
   async createVendor(createVendor: CreateVendorDto) {
-    try {
-      const existing = await this.vendorRepository.findOne({
-        where: { email: createVendor.email },
+    const existing = await this.vendorRepository.findOne({
+      where: { email: createVendor.email },
+    });
+
+    if (existing) {
+      throw new RpcException({
+        statusCode: HttpStatus.CONFLICT,
+        message: `Email ${createVendor.email} is already registered`,
       });
-
-      if (existing) {
-        throw new RpcException({
-          statusCode: HttpStatus.CONFLICT,
-          message: `Email ${createVendor.email} is already registered`,
-        });
-      }
-
+    }
+    try {
       const hashedPassword = await hashPasswordAndOtp(createVendor.password);
       const otp = generateOtp();
       const link = `${this.configService.get<string>('url.front')}/vendor?email=${createVendor.email}&emailVerificationOtp=${otp}`;
@@ -180,45 +178,44 @@ export class AuthService {
   }
 
   async loginUsers(loginDto: LoginDto) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { email: loginDto.email },
+    const user = await this.userRepository.findOne({
+      where: { email: loginDto.email },
+    });
+
+    const vendor = !user
+      ? await this.vendorRepository.findOne({
+          where: { email: loginDto.email },
+        })
+      : null;
+
+    const account = user ?? vendor;
+
+    if (!account) {
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Invalid credentials',
       });
+    }
 
-      const vendor = !user
-        ? await this.vendorRepository.findOne({
-            where: { email: loginDto.email },
-          })
-        : null;
+    if (!account.isEmailVerified) {
+      throw new RpcException({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'Please verify your email before logging in',
+      });
+    }
 
-      const account = user ?? vendor;
+    const isPasswordValid = await comparePassword(
+      loginDto.password,
+      account.password,
+    );
 
-      if (!account) {
-        throw new RpcException({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'Invalid credentials',
-        });
-      }
-
-      if (!account.isEmailVerified) {
-        throw new RpcException({
-          statusCode: HttpStatus.FORBIDDEN,
-          message: 'Please verify your email before logging in',
-        });
-      }
-
-      const isPasswordValid = await comparePassword(
-        loginDto.password,
-        account.password,
-      );
-
-      if (!isPasswordValid) {
-        throw new RpcException({
-          statusCode: HttpStatus.UNAUTHORIZED,
-          message: 'Invalid credentials',
-        });
-      }
-
+    if (!isPasswordValid) {
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Invalid credentials',
+      });
+    }
+    try {
       const payload: JwtPayload = {
         sub: account.id,
         email: account.email,
@@ -249,7 +246,6 @@ export class AuthService {
           message: 'Invalid token payload',
         });
       }
-
       return payload;
     } catch {
       throw new RpcException({
@@ -331,6 +327,14 @@ export class AuthService {
       id: userId,
       repository: this.userRepository,
       accountType: 'user',
+    });
+  }
+
+  async findSingleVendor(vendorId: string) {
+    return this.findOne({
+      id: vendorId,
+      repository: this.vendorRepository,
+      accountType: 'vendor',
     });
   }
 
