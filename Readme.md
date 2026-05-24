@@ -30,9 +30,6 @@
 # 🍔 Food Delivery API
 
 A RESTful API for managing food delivery services — restaurants, menus, orders, delivery tracking, and payments.
-
-📖 **Full API Reference:** [Swagger UI →](https://api.fooddelivery.com/docs)
-
 ---
 
 ## Table of Contents
@@ -68,7 +65,7 @@ curl -X GET "https://api.fooddelivery.com/v1/vendors?open_now=true&lat=6.45&lng=
   -H "Authorization: Bearer <your_api_key>"
 ```
 
-For all available endpoints, request/response schemas, and live testing, see the **[Swagger docs](https://api.fooddelivery.com/docs)**.
+For all available endpoints, request/response schemas, and live testing, see the **[Postman docs](https://documenter.getpostman.com/view/30530080/2sBXwjxEXW)**.
 
 ---
 
@@ -130,4 +127,4 @@ X-Signature: sha256=<hmac_hash>
 
 - 📧 [api-support@fooddelivery.com](mailto:robsonidongesitsamuel@gmail.com)
 - 🐛 [GitHub Issues](https://github.com/idongesit98/vendor-platform/issues)
-- 📖 [Swagger Docs](https://api.fooddelivery.com/docs)
+- 📖 [Postman Docs](https://documenter.getpostman.com/view/30530080/2sBXwjxEXW)
