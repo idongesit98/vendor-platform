@@ -18,7 +18,9 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check() {
-    return this.health.check([() => this.db.pingCheck('database')]);
+    return this.health.check([
+      () => this.db.pingCheck('database', { timeout: 5000 }),
+    ]);
   }
 
   @MessagePattern({ cmd: 'health' })

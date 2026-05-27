@@ -3,11 +3,11 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { User } from '@/common/entities';
+import { Review, User, Vendor } from '@/common/entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Vendor, Review]),
     ClientsModule.register([
       {
         name: 'MENU_SERVICE',

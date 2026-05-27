@@ -21,12 +21,14 @@ import { LoggerConfig } from '@common/config/microservice.logger';
       useFactory: (configService: ConfigService) => {
         const isProduction =
           configService.get<string>('NODE_ENV') === 'production';
-
         return {
           type: 'postgres',
           ...(isProduction
             ? {
                 url: configService.get<string>('url.database'),
+                ssl: {
+                  rejectUnauthorized: false,
+                },
               }
             : {
                 host: configService.get<string>('database.host'),
@@ -40,6 +42,12 @@ import { LoggerConfig } from '@common/config/microservice.logger';
           migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
           migrationsRun: true,
           logging: !isProduction,
+          connectTimeoutMS: 10000,
+          extra: {
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 3000,
+            max: 5,
+          },
         };
       },
       inject: [ConfigService],

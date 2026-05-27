@@ -20,6 +20,9 @@ export class Review {
   @Column({ nullable: true })
   comment: string;
 
+  @Column({ type: 'text', nullable: true })
+  rejectionReason: string | null;
+
   @ManyToOne(() => User, (user) => user.reviews)
   @JoinColumn({ name: 'userId' })
   user: User;

@@ -57,8 +57,8 @@ export class Vendor {
   })
   applicationStatus: ApplicationStatus;
 
-  @Column({ nullable: true })
-  rejectionReason: string | undefined | null;
+  @Column({ type: 'text', nullable: true })
+  rejectionReason: string | null;
 
   @Column({ nullable: true })
   isActive: boolean;

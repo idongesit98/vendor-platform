@@ -26,6 +26,9 @@ import { microserviceLoggerConfig } from '@common/config/microservice.logger';
           ...(isProduction
             ? {
                 url: configService.get<string>('database.url'),
+                ssl: {
+                  rejectUnauthorized: false,
+                },
               }
             : {
                 host: configService.get<string>('database.host'),

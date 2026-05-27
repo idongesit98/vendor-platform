@@ -33,4 +33,7 @@ export default () => ({
     port: parseInt(process.env.REDIS_PORT || '6399', 10),
     password: process.env.REDIS_PASSWORD || '',
   },
+  url: {
+    database: process.env.DATABASE_URL || '',
+  },
 });

@@ -30,6 +30,9 @@ import { LoggerModule } from 'nestjs-pino';
           ...(isProduction
             ? {
                 url: configService.get<string>('url.database'),
+                ssl: {
+                  rejectUnauthorized: false,
+                },
               }
             : {
                 host: configService.get<string>('database.host'),
@@ -42,7 +45,7 @@ import { LoggerModule } from 'nestjs-pino';
           synchronize: !isProduction,
           migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
           migrationsRun: true,
-          logging: true,
+          logging: !isProduction,
         };
       },
       inject: [ConfigService],
@@ -55,8 +58,6 @@ import { LoggerModule } from 'nestjs-pino';
         const host = configService.get<string>('redis.host');
         const port = configService.get<number>('redis.port');
         const password = configService.get<string>('redis.password');
-        console.log('Redis config:', { host, port, password });
-
         return {
           stores: [new KeyvRedis(`redis://:${password}@${host}:${port}`)],
         };

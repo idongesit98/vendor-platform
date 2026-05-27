@@ -18,6 +18,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
   ) {}
 
@@ -62,7 +63,9 @@ export class UserService {
 
     vendor.applicationStatus = dto.status;
     vendor.rejectionReason =
-      dto.status === ApplicationStatus.REJECTED ? dto.rejectionReason : null;
+      dto.status === ApplicationStatus.REJECTED
+        ? (dto.rejectionReason ?? null)
+        : null;
 
     await this.vendorRepository.save(vendor);
 

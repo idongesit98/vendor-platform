@@ -29,6 +29,9 @@ import { LoggerConfig } from '@common/config/microservice.logger';
           ...(isProduction
             ? {
                 url: configService.get<string>('database.url'),
+                ssl: {
+                  rejectUnauthorized: false,
+                },
               }
             : {
                 host: configService.get<string>('database.host'),
@@ -41,7 +44,7 @@ import { LoggerConfig } from '@common/config/microservice.logger';
           synchronize: !isProduction,
           migrations: [__dirname + '/database/migrations/**/*{.ts,.js}'],
           migrationsRun: true,
-          logging: true,
+          logging: !isProduction,
         };
       },
 
