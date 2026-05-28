@@ -12,7 +12,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateCategoryDto } from '../dto';
-import { MENU_ITEM_SERVICE, sendToService } from '@/common/utils';
+import { MENU_SERVICE, sendToService } from '@/common/utils';
 import { JwtAuthGuard, RolesGuard } from '@/common/guards';
 import {
   ApiSuccessResponse,
@@ -22,9 +22,7 @@ import {
 @ApiTags('Category')
 @Controller('category')
 export class CategoryController {
-  constructor(
-    @Inject(MENU_ITEM_SERVICE) private readonly client: ClientProxy,
-  ) {}
+  constructor(@Inject(MENU_SERVICE) private readonly client: ClientProxy) {}
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED)

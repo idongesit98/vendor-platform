@@ -1,0 +1,110 @@
+services:
+  - type: web
+    name: api-gateway
+    env: docker
+    rootDir: api-gateway
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3000
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: USER_SERVICE_URL
+        value: https://user-service.onrender.com
+      - key: MENU_SERVICE_URL
+        value: https://menu-service.onrender.com
+      - key: ORDER_SERVICE_URL
+        value: https://order-service.onrender.com
+      - key: PAYMENT_SERVICE_URL
+        value: https://payment-service.onrender.com
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://notification-service.onrender.com
+
+  - type: web
+    name: user-service
+    env: docker
+    rootDir: user-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3001
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false   # you'll paste the value in Render dashboard (keeps secrets out of git)
+      - key: JWT_SECRET
+        sync: false
+
+  - type: web
+    name: menu-service
+    env: docker
+    rootDir: menu-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3002
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+
+  - type: web
+    name: order-service
+    env: docker
+    rootDir: order-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3003
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: USER_SERVICE_URL
+        value: https://user-service.onrender.com
+      - key: MENU_SERVICE_URL
+        value: https://menu-service.onrender.com
+
+  - type: web
+    name: notification-service
+    env: docker
+    rootDir: notification-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3004
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+
+  - type: web
+    name: payment-service
+    env: docker
+    rootDir: payment-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    port: 3005
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: ORDER_SERVICE_URL
+        value: https://order-service.onrender.com

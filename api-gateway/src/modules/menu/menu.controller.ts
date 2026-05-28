@@ -11,7 +11,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { CreateMenuDto } from './dto/create-menu.dto';
+import { CreateMenuDto } from '@modules/menu/dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,7 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ClientProxy } from '@nestjs/microservices';
-import { MENU_ITEM_SERVICE, sendToService } from '@/common/utils';
+import { MENU_SERVICE, sendToService } from '@/common/utils';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { CurrentUser, Roles } from '@/common/decorators';
@@ -33,9 +33,7 @@ import {
 @ApiTags('Menu')
 @Controller('menu-item')
 export class MenuController {
-  constructor(
-    @Inject(MENU_ITEM_SERVICE) private readonly client: ClientProxy,
-  ) {}
+  constructor(@Inject(MENU_SERVICE) private readonly client: ClientProxy) {}
 
   @Post('create')
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -1,5 +1,5 @@
 import {
-  MENU_ITEM_SERVICE,
+  MENU_SERVICE,
   NOTIFICATION_SERVICE,
   ORDER_SERVICE,
   PAYMENT_SERVICE,
@@ -21,13 +21,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           console.log('USER_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
-            options: { host, port },
+            options: { host, port: port },
           };
         },
         inject: [ConfigService],
       },
       {
-        name: MENU_ITEM_SERVICE,
+        name: MENU_SERVICE,
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => {
           const host = configService.get<string>('services.menuitem.host');
@@ -35,7 +35,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           console.log('MENU_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
-            options: { host, port },
+            options: { host, port: port },
           };
         },
         inject: [ConfigService],
@@ -49,7 +49,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           console.log('ORDER_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
-            options: { host, port },
+            options: { host, port: port },
           };
         },
         inject: [ConfigService],
@@ -63,7 +63,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           console.log('NOTIFICATION_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
-            options: { host, port },
+            options: { host, port: port },
           };
         },
         inject: [ConfigService],
@@ -77,7 +77,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           console.log('PAYMENT_SERVICE connecting to:', { host, port });
           return {
             transport: Transport.TCP,
-            options: { host, port },
+            options: { host, port: port },
           };
         },
         inject: [ConfigService],

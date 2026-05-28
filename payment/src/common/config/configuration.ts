@@ -2,11 +2,11 @@ export default () => ({
   port: parseInt(process.env.PORT || '3005', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   database: {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.PAYMENT_DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5434', 10),
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || '',
-    name: process.env.DB_NAME || 'payment_db',
+    name: process.env.PAYMENT_DB_NAME || 'payment_db',
   },
   paystack: {
     secretKey: process.env.PAYSTACK_SECRET_KEY,
@@ -34,6 +34,6 @@ export default () => ({
     password: process.env.REDIS_PASSWORD || '',
   },
   url: {
-    database: process.env.DATABASE_URL || '',
+    database: process.env.PAYMENT_DATABASE_URL || '',
   },
 });
