@@ -1,5 +1,5 @@
 export default () => ({
-  port: parseInt(process.env.PORT || '3004', 10),
+  port: parseInt(process.env.NOTIF_PORT || '3004', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   database: {
     host: process.env.NOTIF_DB_HOST,

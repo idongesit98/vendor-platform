@@ -1,5 +1,5 @@
 export default () => ({
-  port: parseInt(process.env.PORT || '3005', 10),
+  port: parseInt(process.env.PAYMENT_PORT || '3005', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   database: {
     host: process.env.PAYMENT_DB_HOST || 'localhost',
