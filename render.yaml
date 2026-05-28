@@ -45,12 +45,10 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3000
     healthCheckPath: /health
-    envVarGroups:
-      - shared-secrets
-      - shared-rabbitmq
     envVars:
+      - fromGroup: shared-secrets
+      - fromGroup: shared-rabbitmq
       - key: NODE_ENV
         value: production
       - key: GATEWAY_PORT
@@ -89,14 +87,12 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3001
     healthCheckPath: /health
-    envVarGroups:
-      - shared-secrets
-      - shared-db-credentials
-      - shared-rabbitmq
-      - shared-redis
     envVars:
+      - fromGroup: shared-secrets
+      - fromGroup: shared-db-credentials
+      - fromGroup: shared-rabbitmq
+      - fromGroup: shared-redis
       - key: NODE_ENV
         value: production
       - key: USER_PORT
@@ -123,12 +119,10 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3002
     healthCheckPath: /health
-    envVarGroups:
-      - shared-secrets
-      - shared-db-credentials
     envVars:
+      - fromGroup: shared-secrets
+      - fromGroup: shared-db-credentials
       - key: NODE_ENV
         value: production
       - key: MENU_PORT
@@ -153,13 +147,11 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3003
     healthCheckPath: /health
-    envVarGroups:
-      - shared-secrets
-      - shared-db-credentials
-      - shared-rabbitmq
     envVars:
+      - fromGroup: shared-secrets
+      - fromGroup: shared-db-credentials
+      - fromGroup: shared-rabbitmq
       - key: NODE_ENV
         value: production
       - key: ORDER_PORT
@@ -184,13 +176,11 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3004
     healthCheckPath: /health
-    envVarGroups:
-      - shared-db-credentials
-      - shared-rabbitmq
-      - shared-redis
     envVars:
+      - fromGroup: shared-db-credentials
+      - fromGroup: shared-rabbitmq
+      - fromGroup: shared-redis
       - key: NODE_ENV
         value: production
       - key: NOTIF_PORT
@@ -211,13 +201,11 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    port: 3005
     healthCheckPath: /health
-    envVarGroups:
-      - shared-db-credentials
-      - shared-rabbitmq
-      - shared-redis
     envVars:
+      - fromGroup: shared-db-credentials
+      - fromGroup: shared-rabbitmq
+      - fromGroup: shared-redis
       - key: NODE_ENV
         value: production
       - key: PAYMENT_PORT
