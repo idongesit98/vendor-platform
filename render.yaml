@@ -1,3 +1,42 @@
+envVarGroups:
+  - name: shared-secrets
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+
+  - name: shared-db-credentials
+    envVars:
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+
+  - name: shared-rabbitmq
+    envVars:
+      - key: RABBITMQ_URL
+        sync: false
+      - key: RABBITMQ_USER
+        sync: false
+      - key: RABBITMQ_PASS
+        sync: false
+
+  - name: shared-redis
+    envVars:
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_PASSWORD
+        sync: false
+
 services:
   - type: web
     name: api-gateway
@@ -6,21 +45,42 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    GATEWAY_PORT: 3000
+    port: 3000
     healthCheckPath: /health
+    envVarGroups:
+      - shared-secrets
+      - shared-rabbitmq
     envVars:
       - key: NODE_ENV
         value: production
-      - key: USER_SERVICE_URL
-        value: https://user-service.onrender.com
-      - key: MENU_SERVICE_URL
-        value: https://menu-service.onrender.com
-      - key: ORDER_SERVICE_URL
-        value: https://order-service.onrender.com
-      - key: PAYMENT_SERVICE_URL
-        value: https://payment-service.onrender.com
-      - key: NOTIFICATION_SERVICE_URL
-        value: https://notification-service.onrender.com
+      - key: GATEWAY_PORT
+        value: "3000"
+      - key: USER_SERVICE_HOST
+        value: user-service.onrender.com
+      - key: USER_SERVICE_PORT
+        value: "443"
+      - key: MENU_SERVICE_HOST
+        value: menu-service.onrender.com
+      - key: MENU_SERVICE_PORT
+        value: "443"
+      - key: ORDER_SERVICE_HOST
+        value: order-service.onrender.com
+      - key: ORDER_SERVICE_PORT
+        value: "443"
+      - key: NOTIFICATION_SERVICE_HOST
+        value: notification-service.onrender.com
+      - key: NOTIFICATION_SERVICE_PORT
+        value: "443"
+      - key: PAYMENT_SERVICE_HOST
+        value: payment-service.onrender.com
+      - key: PAYMENT_SERVICE_PORT
+        value: "443"
+      - key: SWAGGER_USER
+        sync: false
+      - key: SWAGGER_PASSWORD
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
 
   - type: web
     name: user-service
@@ -29,14 +89,31 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    USER_PORT: 3001
+    port: 3001
     healthCheckPath: /health
+    envVarGroups:
+      - shared-secrets
+      - shared-db-credentials
+      - shared-rabbitmq
+      - shared-redis
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        sync: false   # you'll paste the value in Render dashboard (keeps secrets out of git)
-      - key: JWT_SECRET
+      - key: USER_PORT
+        value: "3001"
+      - key: FRONTEND_URL
+        sync: false
+      - key: USER_DB_HOST
+        sync: false
+      - key: USER_DB_NAME
+        sync: false
+      - key: POSTGRES_USER_DB
+        sync: false
+      - key: MENU_SERVICE_HOST
+        value: menu-service.onrender.com
+      - key: MENU_SERVICE_PORT
+        value: "443"
+      - key: USER_DATABASE_URL
         sync: false
 
   - type: web
@@ -46,12 +123,27 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    MENU_PORT: 3002
+    port: 3002
     healthCheckPath: /health
+    envVarGroups:
+      - shared-secrets
+      - shared-db-credentials
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
+      - key: MENU_PORT
+        value: "3002"
+      - key: MENU_DB_HOST
+        sync: false
+      - key: MENU_DB_NAME
+        sync: false
+      - key: POSTGRES_MENU_DB
+        sync: false
+      - key: USER_SERVICE_HOST
+        value: user-service.onrender.com
+      - key: USER_SERVICE_PORT
+        value: "443"
+      - key: MENU_DATABASE_URL
         sync: false
 
   - type: web
@@ -61,17 +153,29 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    ORDER_PORT: 3003
+    port: 3003
     healthCheckPath: /health
+    envVarGroups:
+      - shared-secrets
+      - shared-db-credentials
+      - shared-rabbitmq
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
+      - key: ORDER_PORT
+        value: "3003"
+      - key: MENU_SERVICE_HOST
+        value: menu-service.onrender.com
+      - key: MENU_SERVICE_PORT
+        value: "443"
+      - key: ORDER_DB_HOST
         sync: false
-      - key: USER_SERVICE_URL
-        value: https://user-service.onrender.com
-      - key: MENU_SERVICE_URL
-        value: https://menu-service.onrender.com
+      - key: ORDER_DB_NAME
+        sync: false
+      - key: POSTGRES_ORDER_DB
+        sync: false
+      - key: ORDER_DATABASE_URL
+        sync: false
 
   - type: web
     name: notification-service
@@ -80,14 +184,24 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    NOTIF_PORT: 3004
+    port: 3004
     healthCheckPath: /health
+    envVarGroups:
+      - shared-db-credentials
+      - shared-rabbitmq
+      - shared-redis
     envVars:
       - key: NODE_ENV
         value: production
-      - key: SMTP_HOST
+      - key: NOTIF_PORT
+        value: "3004"
+      - key: NOTIF_DB_HOST
         sync: false
-      - key: SMTP_PASSWORD
+      - key: NOTIF_DB_NAME
+        sync: false
+      - key: POSTGRES_NOTIF_DB
+        sync: false
+      - key: NOTIF_DATABASE_URL
         sync: false
 
   - type: web
@@ -97,14 +211,40 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    PAYMENT_PORT: 3005
+    port: 3005
     healthCheckPath: /health
+    envVarGroups:
+      - shared-db-credentials
+      - shared-rabbitmq
+      - shared-redis
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
+      - key: PAYMENT_PORT
+        value: "3005"
+      - key: PAYSTACK_SECRET_KEY
         sync: false
-      - key: STRIPE_SECRET_KEY
+      - key: PAYSTACK_PUBLIC_KEY
         sync: false
-      - key: ORDER_SERVICE_URL
-        value: https://order-service.onrender.com
+      - key: PAYMENT_CALLBACK_URL
+        sync: false
+      - key: WEBHOOKSECRET
+        sync: false
+      - key: BASEURL
+        sync: false
+      - key: ORDER_SERVICE_HOST
+        value: order-service.onrender.com
+      - key: ORDER_SERVICE_PORT
+        value: "443"
+      - key: PAYMENT_DB_HOST
+        sync: false
+      - key: PAYMENT_DB_NAME
+        sync: false
+      - key: POSTGRES_PAYMENT_DB
+        sync: false
+      - key: NOTIFICATION_SERVICE_HOST
+        value: notification-service.onrender.com
+      - key: NOTIFICATION_SERVICE_PORT
+        value: "443"
+      - key: PAYMENT_DATABASE_URL
+        sync: false
