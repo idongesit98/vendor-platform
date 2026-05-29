@@ -54,25 +54,25 @@ services:
       - key: GATEWAY_PORT
         value: "3000"
       - key: USER_SERVICE_HOST
-        value: user-service.onrender.com
+        value: user-service
       - key: USER_SERVICE_PORT
-        value: "443"
+        value: "3001"
       - key: MENU_SERVICE_HOST
-        value: menu-service.onrender.com
+        value: menu-service
       - key: MENU_SERVICE_PORT
-        value: "443"
+        value: "3002"
       - key: ORDER_SERVICE_HOST
-        value: order-service.onrender.com
+        value: order-service
       - key: ORDER_SERVICE_PORT
-        value: "443"
+        value: "3003"
       - key: NOTIFICATION_SERVICE_HOST
-        value: notification-service.onrender.com
+        value: notification-service
       - key: NOTIFICATION_SERVICE_PORT
-        value: "443"
+        value: "3004"
       - key: PAYMENT_SERVICE_HOST
-        value: payment-service.onrender.com
+        value: payment-service
       - key: PAYMENT_SERVICE_PORT
-        value: "443"
+        value: "3005"
       - key: SWAGGER_USER
         sync: false
       - key: SWAGGER_PASSWORD
@@ -106,9 +106,9 @@ services:
       - key: POSTGRES_USER_DB
         sync: false
       - key: MENU_SERVICE_HOST
-        value: menu-service.onrender.com
+        value: menu-service
       - key: MENU_SERVICE_PORT
-        value: "443"
+        value: "3002"
       - key: USER_DATABASE_URL
         sync: false
 
@@ -134,9 +134,9 @@ services:
       - key: POSTGRES_MENU_DB
         sync: false
       - key: USER_SERVICE_HOST
-        value: user-service.onrender.com
+        value: user-service
       - key: USER_SERVICE_PORT
-        value: "443"
+        value: "3001"
       - key: MENU_DATABASE_URL
         sync: false
 
@@ -157,7 +157,7 @@ services:
       - key: ORDER_PORT
         value: "3003"
       - key: MENU_SERVICE_HOST
-        value: menu-service.onrender.com
+        value: menu-service
       - key: MENU_SERVICE_PORT
         value: "443"
       - key: ORDER_DB_HOST
@@ -221,9 +221,9 @@ services:
       - key: BASEURL
         sync: false
       - key: ORDER_SERVICE_HOST
-        value: order-service.onrender.com
+        value: order-service.onrender.co
       - key: ORDER_SERVICE_PORT
-        value: "443"
+        value: "3003"
       - key: PAYMENT_DB_HOST
         sync: false
       - key: PAYMENT_DB_NAME
@@ -233,6 +233,6 @@ services:
       - key: NOTIFICATION_SERVICE_HOST
         value: notification-service.onrender.com
       - key: NOTIFICATION_SERVICE_PORT
-        value: "443"
+        value: "3004"
       - key: PAYMENT_DATABASE_URL
         sync: false
