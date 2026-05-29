@@ -113,7 +113,7 @@ services:
         sync: false
 
   - type: web
-    name: menuitems-service
+    name: menu-service
     env: docker
     rootDir: menu-service
     dockerfilePath: ./Dockerfile
@@ -195,7 +195,7 @@ services:
         sync: false
 
   - type: web
-    name: payment
+    name: payment-service
     env: docker
     rootDir: payment-service
     dockerfilePath: ./Dockerfile
