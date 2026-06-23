@@ -1,0 +1,313 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [main, development]
+  push:
+    branches: [main, development]
+
+jobs:
+  # --- Detect Which Services Changed -------
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      user-service: ${{ steps.filter.outputs.user-service }}
+      menuitems-service: ${{ steps.filter.outputs.menuitems-service }}
+      order-service: ${{ steps.filter.outputs.order-service }}
+      notification-service: ${{ steps.filter.outputs.notification-service }}
+      payment: ${{ steps.filter.outputs.payment-service }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway:
+              - 'api-gateway/**'
+            user-service:
+              - 'user-service/**'
+            menuitems-service:
+              - 'menuitems-service/**'
+            order-service:
+              - 'order-service/**'
+            notification-service:
+              - 'notification-service/**'
+            payment:
+              - 'payment/**'
+
+  # -- Api Gateway --
+  api-gateway:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api-gateway == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api-gateway
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '24'
+            cache: 'npm'
+            cache-dependency-path: api-gateway/package-lock.json
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Lint
+          run: npm run lint
+
+        - name: Run tests
+          run: npm run test
+
+        - name: Build
+          run: npm run build
+
+  # -- User Service ---
+  user-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.user-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./user-service
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: user_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: user-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: test
+          DB_NAME: user_db_test
+          JWT_SECRET: test-secret
+
+      - name: Build
+        run: npm run build
+
+  # --- Menu Item Service ---
+  menuitem-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.menuitems-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./menuitems-service
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: menu_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: menuitems-service/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: test
+          DB_NAME: menu_db_test
+      - run: npm run build
+
+  # --- Order Service ---
+  order-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.order-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./order-service
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: order_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:4-management-alpine
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: order-service/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: test
+          DB_NAME: order_db_test
+          RABBITMQ_URL: amqp://localhost:5672
+      - run: npm run build
+
+  # -- Notification Service ---
+  notification-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.notification-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./notificatiob-service
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: notification_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+          image: rabbitmq:4-management-alpine
+          ports:
+            - 5672:5672
+          options: >-
+            --health-cmd "rabbitmq-diagnostics -q ping"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: notification-service/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: test
+          DB_NAME: notification_db_test
+          RABBITMQ_URL: amqp://localhost:5672
+      - run: npm run build
+
+  # -- Payment Service ---
+  payment:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.payment == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./payment
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: payment_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: payment/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: test
+          DB_NAME: payment_db_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          RABBITMQ_URL: amqp://localhost:5672
+          PAYSTACK_SECRET_KEY: sk_test_dummy
+      - run: npm run build
+

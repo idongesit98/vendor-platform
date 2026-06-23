@@ -4,17 +4,15 @@ export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')
     .default('development'),
-  PORT: Joi.number().default(3000),
+  GATEWAY_PORT: Joi.number().default(3000),
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRES_IN: Joi.string().default('1h'),
-  AUTH_SERVICE_HOST: Joi.string().default('localhost'),
-  AUTH_SERVICE_PORT: Joi.number().default(3001),
   USER_SERVICE_HOST: Joi.string().default('localhost'),
-  USER_SERVICE_PORT: Joi.number().default(3002),
-  MENUITEM_SERVICE_HOST: Joi.string().default('localhost'),
-  MENUITEM_SERVICE_PORT: Joi.number().default(3003),
+  USER_SERVICE_PORT: Joi.number().default(4000),
+  MENU_SERVICE_HOST: Joi.string().default('localhost'),
+  MENU_SERVICE_PORT: Joi.number().default(4001),
   ORDER_SERVICE_HOST: Joi.string().default('localhost'),
-  ORDER_SERVICE_PORT: Joi.number().default(3004),
+  ORDER_SERVICE_PORT: Joi.number().default(4002),
   NOTIFICATION_HOST: Joi.string().default('localhost'),
-  NOTIFICATION_PORT: Joi.number().default(3005),
+  NOTIFICATION_PORT: Joi.number().default(4003),
 });
