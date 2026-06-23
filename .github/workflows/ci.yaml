@@ -19,9 +19,9 @@ jobs:
       payment: ${{ steps.filter.outputs.payment-service }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
