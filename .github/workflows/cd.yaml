@@ -25,13 +25,13 @@ jobs:
             - 'api-gateway/**'
            user-service:
             - 'user-service/**'
-           menu-item-service:
-            - 'menu-item-service/**'
+           menuitems-service:
+            - 'menuitems-service/**'
            order-service:
             - 'order-service/**'
            notification-service:
             - 'notification-service/**'
-          payment:
+           payment:
             - 'payment-service/**'           
 
   # ── Build & Push Docker Images ───────────────────
